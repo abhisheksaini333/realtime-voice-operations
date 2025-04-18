@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+node_modules/
+dist/
+*.sqlite*
+*.wav
+*.pcap
+evidence/
+.DS_Store

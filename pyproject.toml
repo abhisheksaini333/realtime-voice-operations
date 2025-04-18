@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools==75.8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "realtime-voice-operations"
+version = "0.1.0"
+description = "Call supervision and recovery for local SIP voice agents"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["voiceops*"]
