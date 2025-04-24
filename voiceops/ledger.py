@@ -29,7 +29,9 @@ def timestamp(value):
 
 
 class CallLedger:
-    def __init__(self, path):
+    def __init__(self, path, *, max_active_calls=4):
+        if type(max_active_calls) is not int or not 1 <= max_active_calls <= 100:
+            raise InvalidCall("Invalid active call capacity")
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.connection() as db:
@@ -47,7 +49,11 @@ class CallLedger:
                     kind TEXT NOT NULL, observed_at REAL NOT NULL, data TEXT NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS events_call ON events(call_id, sequence);
+                CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+                CREATE UNIQUE INDEX IF NOT EXISTS live_participant ON calls(room,participant)
+                  WHERE status NOT IN ('ended','failed','transferred');
             """)
+            db.execute("INSERT OR IGNORE INTO settings(key,value) VALUES('capacity',?)", (str(max_active_calls),))
         self.path.chmod(0o600)
 
     @contextmanager
@@ -91,6 +97,13 @@ class CallLedger:
         now = timestamp(now)
         call_id = uuid.uuid4().hex
         with self.transaction() as db:
+            if db.execute("""SELECT 1 FROM calls WHERE room=? AND participant=?
+                             AND status NOT IN ('ended','failed','transferred')""", (room, participant)).fetchone():
+                raise InvalidCall("Participant already admitted")
+            active = db.execute("SELECT count(*) FROM calls WHERE status NOT IN ('ended','failed','transferred')").fetchone()[0]
+            capacity = int(db.execute("SELECT value FROM settings WHERE key='capacity'").fetchone()[0])
+            if active >= capacity:
+                raise InvalidCall("Active call capacity reached")
             db.execute("""INSERT INTO calls(id,owner,caller,room,participant,status,created_at,updated_at)
                           VALUES(?,?,?,?,?,'admitted',?,?)""",
                        (call_id, owner, caller, room, participant, now, now))

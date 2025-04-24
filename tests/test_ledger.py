@@ -34,6 +34,20 @@ class AdmissionTests(unittest.TestCase):
                 self.admit(**{field: value})
         self.assertEqual(self.ledger.list_calls("team-a"), [])
 
+    def test_active_call_capacity_is_shared_between_ledger_instances(self):
+        limited = CallLedger(Path(self.directory.name) / "limited.sqlite", max_active_calls=1)
+        limited.admit(owner="team-a", caller="1001", room="one", participant="one", now=1)
+        other = CallLedger(limited.path)
+        with self.assertRaisesRegex(InvalidCall, "capacity"):
+            other.admit(owner="team-b", caller="1002", room="two", participant="two", now=2)
+        self.assertEqual(len(other.list_calls("team-b")), 0)
+
+    def test_duplicate_room_participant_does_not_consume_another_slot(self):
+        self.admit()
+        with self.assertRaisesRegex(InvalidCall, "already"):
+            self.admit()
+        self.assertEqual(len(self.ledger.list_calls("team-a")), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
