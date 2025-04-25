@@ -29,6 +29,15 @@ def timestamp(value):
 
 
 class CallLedger:
+    TRANSITIONS = {
+        "admitted": {"ringing", "answered", "ended", "failed"},
+        "ringing": {"answered", "ended", "failed"},
+        "answered": {"transferring", "ended", "failed"},
+        "transferring": {"answered", "transfer_unknown", "transferred", "ended", "failed"},
+        "transfer_unknown": {"answered", "transferred", "ended", "failed"},
+        "ended": set(), "failed": set(), "transferred": set(),
+    }
+
     def __init__(self, path, *, max_active_calls=4):
         if type(max_active_calls) is not int or not 1 <= max_active_calls <= 100:
             raise InvalidCall("Invalid active call capacity")
@@ -112,6 +121,21 @@ class CallLedger:
 
     def get(self, call_id, owner):
         with self.connection() as db:
+            return self._owned(db, call_id, owner)
+
+    def transition(self, call_id, owner, state, *, now, version):
+        now = timestamp(now)
+        with self.transaction() as db:
+            call = self._owned(db, call_id, owner)
+            if type(version) is not int or call["version"] != version:
+                raise InvalidCall("Call version changed")
+            if state not in self.TRANSITIONS[call["status"]]:
+                raise InvalidCall("Invalid call transition")
+            if now < call["updated_at"]:
+                raise InvalidCall("Observation predates latest call state")
+            db.execute("UPDATE calls SET status=?,updated_at=?,version=version+1 WHERE id=?",
+                       (state, now, call_id))
+            self._event(db, call_id, state, now, {"previous": call["status"]})
             return self._owned(db, call_id, owner)
 
     def list_calls(self, owner):

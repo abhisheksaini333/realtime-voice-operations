@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from voiceops.ledger import CallLedger, InvalidCall
+from voiceops.ledger import CallLedger, InvalidCall, CallNotFound
 
 
 class AdmissionTests(unittest.TestCase):
@@ -47,6 +47,24 @@ class AdmissionTests(unittest.TestCase):
         with self.assertRaisesRegex(InvalidCall, "already"):
             self.admit()
         self.assertEqual(len(self.ledger.list_calls("team-a")), 1)
+
+    def test_call_lifecycle_is_versioned_and_terminal(self):
+        call = self.admit()
+        for state in ("ringing", "answered", "ended"):
+            call = self.ledger.transition(call["id"], "team-a", state,
+                                          now=call["updated_at"] + 1, version=call["version"])
+        self.assertEqual(call["status"], "ended")
+        self.assertEqual(call["version"], 4)
+        with self.assertRaisesRegex(InvalidCall, "transition"):
+            self.ledger.transition(call["id"], "team-a", "answered", now=105, version=4)
+
+    def test_stale_update_and_cross_owner_access_do_not_change_call(self):
+        call = self.admit()
+        with self.assertRaisesRegex(InvalidCall, "version"):
+            self.ledger.transition(call["id"], "team-a", "answered", now=101, version=0)
+        with self.assertRaises(CallNotFound):
+            self.ledger.transition(call["id"], "team-b", "answered", now=101, version=1)
+        self.assertEqual(self.ledger.get(call["id"], "team-a")["version"], 1)
 
 
 if __name__ == "__main__":
