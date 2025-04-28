@@ -106,6 +106,8 @@ class CallLedger:
         now = timestamp(now)
         call_id = uuid.uuid4().hex
         with self.transaction() as db:
+            if db.execute("SELECT 1 FROM settings WHERE key='drain_deadline'").fetchone():
+                raise InvalidCall("Service is draining")
             if db.execute("""SELECT 1 FROM calls WHERE room=? AND participant=?
                              AND status NOT IN ('ended','failed','transferred')""", (room, participant)).fetchone():
                 raise InvalidCall("Participant already admitted")
@@ -122,6 +124,25 @@ class CallLedger:
     def get(self, call_id, owner):
         with self.connection() as db:
             return self._owned(db, call_id, owner)
+
+    def begin_drain(self, *, now, deadline):
+        now, deadline = timestamp(now), timestamp(deadline)
+        if not now < deadline <= now + 3600:
+            raise InvalidCall("Drain deadline must be within one hour")
+        with self.transaction() as db:
+            db.execute("INSERT INTO settings(key,value) VALUES('drain_deadline',?) "
+                       "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (str(deadline),))
+
+    def drain_status(self, *, now):
+        now = timestamp(now)
+        with self.connection() as db:
+            row = db.execute("SELECT value FROM settings WHERE key='drain_deadline'").fetchone()
+            active = [r[0] for r in db.execute("SELECT id FROM calls WHERE status NOT IN "
+                                             "('ended','failed','transferred') ORDER BY id")]
+        deadline = float(row[0]) if row else None
+        return {"draining": row is not None, "deadline": deadline,
+                "active_calls": len(active), "complete": row is not None and not active,
+                "needs_termination": active if deadline is not None and now >= deadline else []}
 
     def transition(self, call_id, owner, state, *, now, version):
         now = timestamp(now)

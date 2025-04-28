@@ -66,6 +66,22 @@ class AdmissionTests(unittest.TestCase):
             self.ledger.transition(call["id"], "team-b", "answered", now=101, version=1)
         self.assertEqual(self.ledger.get(call["id"], "team-a")["version"], 1)
 
+    def test_drain_refuses_admission_while_existing_call_can_finish(self):
+        call = self.admit()
+        self.ledger.begin_drain(now=101, deadline=110)
+        with self.assertRaisesRegex(InvalidCall, "draining"):
+            self.admit(room="another", participant="another", now=102)
+        self.assertFalse(self.ledger.drain_status(now=102)["complete"])
+        self.ledger.transition(call["id"], "team-a", "ended", now=103, version=1)
+        self.assertTrue(self.ledger.drain_status(now=104)["complete"])
+
+    def test_expired_drain_requests_termination_without_inventing_hangup(self):
+        call = self.admit()
+        self.ledger.begin_drain(now=101, deadline=110)
+        status = CallLedger(self.path).drain_status(now=111)
+        self.assertEqual(status["needs_termination"], [call["id"]])
+        self.assertEqual(self.ledger.get(call["id"], "team-a")["status"], "admitted")
+
 
 if __name__ == "__main__":
     unittest.main()
