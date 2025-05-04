@@ -1,10 +1,11 @@
 """Exact operator proposals and durable transfer operation records."""
 import hashlib
+import hmac
 import json
 import re
 import uuid
 
-from .ledger import InvalidCall, identifier, timestamp
+from .ledger import CallNotFound, InvalidCall, identifier, timestamp
 
 
 class TransferService:
@@ -53,3 +54,37 @@ class TransferService:
             self.ledger._event(db, call_id, "transfer_proposed", now,
                                {"transfer_id": transfer_id, "target": target, "digest": digest})
             return dict(db.execute("SELECT * FROM transfers WHERE id=?", (transfer_id,)).fetchone())
+
+    @staticmethod
+    def _owned(db, transfer_id, owner):
+        row = db.execute("SELECT * FROM transfers WHERE id=? AND owner=?", (transfer_id, owner)).fetchone()
+        if row is None:
+            raise CallNotFound("Transfer unavailable")
+        return dict(row)
+
+    def _assert_current(self, db, proposal, now):
+        if now >= proposal["expires_at"]:
+            raise InvalidCall("Transfer approval expired")
+        if now < proposal["created_at"]:
+            raise InvalidCall("Approval predates proposal")
+        call = self.ledger._owned(db, proposal["call_id"], proposal["owner"])
+        if call["status"] != "answered" or call["version"] != proposal["call_version"]:
+            raise InvalidCall("Call changed after proposal")
+        if self.targets.get(proposal["target"]) != proposal["target_uri"]:
+            raise InvalidCall("Transfer destination changed after proposal")
+        return call
+
+    def approve(self, transfer_id, owner, digest, approver, *, now):
+        now = timestamp(now)
+        identifier(approver, "approver")
+        with self.ledger.transaction() as db:
+            proposal = self._owned(db, transfer_id, owner)
+            if not isinstance(digest, str) or not hmac.compare_digest(digest, proposal["digest"]):
+                raise InvalidCall("Transfer digest does not match")
+            self._assert_current(db, proposal, now)
+            if proposal["state"] != "proposed":
+                raise InvalidCall("Transfer is not awaiting approval")
+            db.execute("UPDATE transfers SET state='approved',approver=? WHERE id=?", (approver, transfer_id))
+            self.ledger._event(db, proposal["call_id"], "transfer_approved", now,
+                               {"transfer_id": transfer_id, "approver": approver, "digest": digest})
+            return self._owned(db, transfer_id, owner)

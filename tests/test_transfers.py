@@ -34,3 +34,19 @@ class TransferTests(unittest.TestCase):
         self.service.propose(self.call["id"], "team-a", "operator", now=102)
         with self.assertRaisesRegex(InvalidCall, "pending"):
             self.service.propose(self.call["id"], "team-a", "operator", now=103)
+
+    def test_approval_requires_exact_unexpired_digest(self):
+        proposal = self.service.propose(self.call["id"], "team-a", "operator", now=102)
+        with self.assertRaisesRegex(InvalidCall, "digest"):
+            self.service.approve(proposal["id"], "team-a", "changed", "supervisor", now=103)
+        approved = self.service.approve(proposal["id"], "team-a", proposal["digest"], "supervisor", now=104)
+        self.assertEqual(approved["state"], "approved")
+        self.assertEqual(approved["approver"], "supervisor")
+
+    def test_expired_or_changed_call_cannot_be_approved(self):
+        proposal = self.service.propose(self.call["id"], "team-a", "operator", now=102)
+        with self.assertRaisesRegex(InvalidCall, "expired"):
+            self.service.approve(proposal["id"], "team-a", proposal["digest"], "supervisor", now=162)
+        self.ledger.transition(self.call["id"], "team-a", "ended", now=103, version=2)
+        with self.assertRaisesRegex(InvalidCall, "changed"):
+            self.service.approve(proposal["id"], "team-a", proposal["digest"], "supervisor", now=104)
