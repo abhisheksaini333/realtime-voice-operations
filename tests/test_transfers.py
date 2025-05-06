@@ -50,3 +50,22 @@ class TransferTests(unittest.TestCase):
         self.ledger.transition(self.call["id"], "team-a", "ended", now=103, version=2)
         with self.assertRaisesRegex(InvalidCall, "changed"):
             self.service.approve(proposal["id"], "team-a", proposal["digest"], "supervisor", now=104)
+
+    def test_dispatch_claim_is_durable_and_cannot_be_replayed(self):
+        proposal = self.service.propose(self.call["id"], "team-a", "operator", now=102)
+        with self.assertRaisesRegex(InvalidCall, "approved"):
+            self.service.claim(proposal["id"], "team-a", now=103)
+        self.service.approve(proposal["id"], "team-a", proposal["digest"], "supervisor", now=104)
+        operation = self.service.claim(proposal["id"], "team-a", now=105)
+        self.assertEqual(operation["state"], "dispatched")
+        self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "transferring")
+        restarted = TransferService(CallLedger(self.ledger.path), targets=self.service.targets)
+        with self.assertRaises(InvalidCall):
+            restarted.claim(proposal["id"], "team-a", now=106)
+
+    def test_destination_configuration_change_invalidates_dispatch(self):
+        proposal = self.service.propose(self.call["id"], "team-a", "operator", now=102)
+        self.service.approve(proposal["id"], "team-a", proposal["digest"], "supervisor", now=104)
+        self.service.targets["operator"] = "sip:other@127.0.0.1:18160"
+        with self.assertRaisesRegex(InvalidCall, "destination changed"):
+            self.service.claim(proposal["id"], "team-a", now=105)

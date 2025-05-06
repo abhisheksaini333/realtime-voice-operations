@@ -88,3 +88,18 @@ class TransferService:
             self.ledger._event(db, proposal["call_id"], "transfer_approved", now,
                                {"transfer_id": transfer_id, "approver": approver, "digest": digest})
             return self._owned(db, transfer_id, owner)
+
+    def claim(self, transfer_id, owner, *, now):
+        """Record dispatch before any external request; a claim is never replayable."""
+        now = timestamp(now)
+        with self.ledger.transaction() as db:
+            proposal = self._owned(db, transfer_id, owner)
+            if proposal["state"] != "approved":
+                raise InvalidCall("Transfer must be approved and not previously dispatched")
+            self._assert_current(db, proposal, now)
+            db.execute("UPDATE transfers SET state='dispatched',dispatched_at=? WHERE id=?", (now, transfer_id))
+            db.execute("UPDATE calls SET status='transferring',updated_at=?,version=version+1 WHERE id=?",
+                       (now, proposal["call_id"]))
+            self.ledger._event(db, proposal["call_id"], "transfer_dispatched", now,
+                               {"transfer_id": transfer_id, "target": proposal["target"]})
+            return self._owned(db, transfer_id, owner)
