@@ -69,3 +69,23 @@ class TransferTests(unittest.TestCase):
         self.service.targets["operator"] = "sip:other@127.0.0.1:18160"
         with self.assertRaisesRegex(InvalidCall, "destination changed"):
             self.service.claim(proposal["id"], "team-a", now=105)
+
+    def dispatched(self):
+        proposal = self.service.propose(self.call["id"], "team-a", "operator", now=102)
+        self.service.approve(proposal["id"], "team-a", proposal["digest"], "supervisor", now=103)
+        return self.service.claim(proposal["id"], "team-a", now=104)
+
+    def test_lost_response_is_quarantined_and_never_automatically_replayed(self):
+        operation = self.dispatched()
+        uncertain = self.service.mark_unknown(operation["id"], "team-a", "lost_response", now=105)
+        self.assertEqual(uncertain["state"], "outcome_unknown")
+        self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "transfer_unknown")
+        with self.assertRaises(InvalidCall):
+            self.service.claim(operation["id"], "team-a", now=106)
+
+    def test_worker_recovery_marks_only_overdue_dispatched_operations(self):
+        operation = self.dispatched()
+        self.assertEqual(self.service.recover_dispatched(now=110, older_than=90), [])
+        recovered = self.service.recover_dispatched(now=210, older_than=200)
+        self.assertEqual(recovered, [operation["id"]])
+        self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "transfer_unknown")

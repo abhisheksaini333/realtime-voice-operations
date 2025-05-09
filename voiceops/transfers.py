@@ -103,3 +103,34 @@ class TransferService:
             self.ledger._event(db, proposal["call_id"], "transfer_dispatched", now,
                                {"transfer_id": transfer_id, "target": proposal["target"]})
             return self._owned(db, transfer_id, owner)
+
+    def _unknown(self, db, proposal, reason, now):
+        if proposal["state"] != "dispatched":
+            raise InvalidCall("Only a dispatched transfer can have an unknown outcome")
+        if now < proposal["dispatched_at"]:
+            raise InvalidCall("Observation predates dispatch")
+        db.execute("UPDATE transfers SET state='outcome_unknown',evidence=? WHERE id=?",
+                   (json.dumps({"reason": reason}), proposal["id"]))
+        db.execute("UPDATE calls SET status='transfer_unknown',updated_at=?,version=version+1 "
+                   "WHERE id=? AND status='transferring'", (now, proposal["call_id"]))
+        self.ledger._event(db, proposal["call_id"], "transfer_outcome_unknown", now,
+                           {"transfer_id": proposal["id"], "reason": reason})
+        return self._owned(db, proposal["id"], proposal["owner"])
+
+    def mark_unknown(self, transfer_id, owner, reason, *, now):
+        now = timestamp(now)
+        if reason not in {"timeout", "lost_response", "worker_restart"}:
+            raise InvalidCall("Unknown uncertainty reason")
+        with self.ledger.transaction() as db:
+            return self._unknown(db, self._owned(db, transfer_id, owner), reason, now)
+
+    def recover_dispatched(self, *, now, older_than):
+        now, older_than = timestamp(now), timestamp(older_than)
+        if older_than > now:
+            raise InvalidCall("Recovery cutoff cannot be in the future")
+        with self.ledger.transaction() as db:
+            pending = db.execute("SELECT * FROM transfers WHERE state='dispatched' "
+                                 "AND dispatched_at<=? ORDER BY dispatched_at,id", (older_than,)).fetchall()
+            for proposal in pending:
+                self._unknown(db, dict(proposal), "worker_restart", now)
+            return [proposal["id"] for proposal in pending]
