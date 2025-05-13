@@ -134,3 +134,36 @@ class TransferService:
             for proposal in pending:
                 self._unknown(db, dict(proposal), "worker_restart", now)
             return [proposal["id"] for proposal in pending]
+
+    def reconcile(self, transfer_id, owner, outcome, evidence, *, now):
+        """Apply observations from the trusted media worker, never browser claims."""
+        now = timestamp(now)
+        if outcome not in {"connected", "rejected", "unanswered"} or not isinstance(evidence, dict):
+            raise InvalidCall("Invalid transfer observation")
+        media = all(type(evidence.get(key)) is int and evidence[key] > 0
+                    for key in ("audio_sent", "audio_received"))
+        if outcome == "connected":
+            identifier(evidence.get("dialog_id"), "second dialog")
+            if evidence.get("answered") is not True or not media:
+                raise InvalidCall("Transfer success requires answered second dialog and bidirectional audio")
+        elif type(evidence.get("original_active")) is not bool:
+            raise InvalidCall("Original call observation is required")
+        elif evidence["original_active"] and not media:
+            raise InvalidCall("Restoring the original call requires current bidirectional audio")
+        with self.ledger.transaction() as db:
+            proposal = self._owned(db, transfer_id, owner)
+            if proposal["state"] not in {"dispatched", "outcome_unknown"}:
+                raise InvalidCall("Transfer is not awaiting reconciliation")
+            call = self.ledger._owned(db, proposal["call_id"], owner)
+            if now < max(proposal["dispatched_at"], call["updated_at"]):
+                raise InvalidCall("Observation predates latest call state")
+            db.execute("UPDATE transfers SET state=?,completed_at=?,evidence=? WHERE id=?",
+                       (outcome, now, json.dumps(evidence), transfer_id))
+            if call["status"] in {"transferring", "transfer_unknown"}:
+                state = "transferred" if outcome == "connected" else (
+                    "answered" if evidence["original_active"] else "ended")
+                db.execute("UPDATE calls SET status=?,updated_at=?,version=version+1 WHERE id=?",
+                           (state, now, call["id"]))
+            self.ledger._event(db, call["id"], "transfer_reconciled", now,
+                               {"transfer_id": transfer_id, "outcome": outcome, **evidence})
+            return self._owned(db, transfer_id, owner)

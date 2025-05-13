@@ -89,3 +89,32 @@ class TransferTests(unittest.TestCase):
         recovered = self.service.recover_dispatched(now=210, older_than=200)
         self.assertEqual(recovered, [operation["id"]])
         self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "transfer_unknown")
+
+    def test_success_requires_second_dialog_and_both_audio_directions(self):
+        operation = self.dispatched()
+        for evidence in ({"api_ok": True}, {"dialog_id": "second", "answered": True,
+                                            "audio_sent": 160, "audio_received": 0}):
+            with self.assertRaises(InvalidCall):
+                self.service.reconcile(operation["id"], "team-a", "connected", evidence, now=105)
+        result = self.service.reconcile(operation["id"], "team-a", "connected",
+                                        {"dialog_id": "second", "answered": True,
+                                         "audio_sent": 160, "audio_received": 160}, now=106)
+        self.assertEqual(result["state"], "connected")
+        self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "transferred")
+
+    def test_rejected_transfer_restores_call_only_with_current_media_evidence(self):
+        operation = self.dispatched()
+        self.service.mark_unknown(operation["id"], "team-a", "timeout", now=105)
+        result = self.service.reconcile(operation["id"], "team-a", "rejected",
+                                        {"original_active": True, "audio_sent": 160,
+                                         "audio_received": 160}, now=106)
+        self.assertEqual(result["state"], "rejected")
+        self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "answered")
+
+    def test_reconciliation_does_not_resurrect_a_terminated_call(self):
+        operation = self.dispatched()
+        call = self.ledger.get(self.call["id"], "team-a")
+        self.ledger.transition(call["id"], "team-a", "ended", version=call["version"], now=105)
+        self.service.reconcile(operation["id"], "team-a", "unanswered",
+                               {"original_active": False, "audio_sent": 0, "audio_received": 0}, now=106)
+        self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "ended")
