@@ -31,7 +31,7 @@ func main() {
 	}
 	refs := make(chan *sip.Request, 1)
 	byes := make(chan bool, 1)
-	cli, err := siptest.NewClient("initial", siptest.ClientConfig{IP: netip.MustParseAddr("127.0.0.1"), Number: "1001", AuthUser: "voiceops", AuthPass: "local-pass", OnRefer: func(req *sip.Request) { refs <- req }, OnBye: func() {
+	cli, err := siptest.NewClient("initial", siptest.ClientConfig{IP: netip.MustParseAddr("127.0.0.1"), Number: callerNumber(), AuthUser: "voiceops", AuthPass: "local-pass", OnRefer: func(req *sip.Request) { refs <- req }, OnBye: func() {
 		select {
 		case byes <- true:
 		default:
@@ -44,12 +44,28 @@ func main() {
 	if err = cli.Dial("127.0.0.1:18150", "127.0.0.1", "2000", nil); err != nil {
 		panic(err)
 	}
-	go cli.SendSignal(ctx, 0, 5)
-	if err = media(ctx, cli); err != nil {
-		panic(err)
+	if mode != "quiet" {
+		go cli.SendSignal(ctx, 0, 5)
+		if err = media(ctx, cli); err != nil {
+			panic(err)
+		}
 	}
 	cli.SendDTMF("5")
 	emit(map[string]interface{}{"stage": "ready", "initial_audio": true})
+	if mode == "finish" {
+		time.Sleep(2 * time.Second)
+		emit(map[string]interface{}{"stage": "complete", "outcome": "caller_hangup"})
+		return
+	}
+	if mode == "hold" || mode == "quiet" {
+		select {
+		case <-byes:
+			emit(map[string]interface{}{"stage": "complete", "outcome": "remote_hangup", "bye": true})
+			return
+		case <-ctx.Done():
+			panic("hangup timeout")
+		}
+	}
 	var req *sip.Request
 	select {
 	case req = <-refs:
@@ -107,4 +123,11 @@ func main() {
 		emit(map[string]interface{}{"stage": "complete", "outcome": mode, "original_audio": true, "original_bye": false, "elapsed_ms": time.Since(start).Milliseconds(), "refer_call_id": req.CallID().Value()})
 	}
 	fmt.Fprintln(os.Stderr, "transfer fixture completed")
+}
+
+func callerNumber() string {
+	if value := os.Getenv("SIP_CALLER"); value != "" {
+		return value
+	}
+	return "1001"
 }
