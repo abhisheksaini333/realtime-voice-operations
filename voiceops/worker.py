@@ -12,6 +12,7 @@ import time
 from .ledger import CallLedger, InvalidCall
 from .livekit_gateway import LiveKitGateway
 from .observations import Observations
+from .privacy import PrivacyStore
 from .supervisor import Supervisor
 from .transfers import TransferService
 
@@ -35,6 +36,7 @@ async def serve(args):
     from livekit import api, rtc
     ledger = CallLedger(args.database, max_active_calls=args.capacity)
     observations = Observations(ledger)
+    privacy = PrivacyStore(ledger)
     gateway = LiveKitGateway(args.url, args.api_key, args.api_secret)
     transfers = TransferService(ledger, targets={"operator": "sip:operator@127.0.0.1:18160",
                                                 "reject": "sip:reject@127.0.0.1:18160",
@@ -82,17 +84,30 @@ async def serve(args):
 
     async def echo(remote, participant, call_id):
         pending_received = pending_sent = 0
+        recording = bytearray()
+        consent_version = None
         last_flush = time.monotonic()
         async for event in rtc.AudioStream(remote, sample_rate=8000, num_channels=1):
             call = ledger.get(call_id, args.owner)
             if call["status"] in {"admitted", "ringing"} and participant.attributes.get("sip.callStatus") == "active":
                 ledger.transition(call_id, args.owner, "answered", now=time.time(), version=call["version"])
             pending_received += event.frame.samples_per_channel
+            consent = privacy.settings(call_id, args.owner)
+            if consent.get("observed_at") != consent_version:
+                recording.clear()
+                consent_version = consent.get("observed_at")
+            if consent["recording"] and len(recording) < 960000:
+                recording.extend(bytes(event.frame.data)[:960000 - len(recording)])
             if output_enabled:
                 await source.capture_frame(event.frame)
                 pending_sent += event.frame.samples_per_channel
             if time.monotonic() - last_flush >= 0.2:
                 observations.media(call_id, args.owner, received=pending_received, sent=pending_sent, now=time.time())
+                if recording:
+                    try:
+                        privacy.record(call_id, args.owner, bytes(recording), sample_rate=8000, now=time.time())
+                    except InvalidCall:
+                        recording.clear()  # Consent may have been withdrawn during this frame.
                 pending_received = pending_sent = 0
                 last_flush = time.monotonic()
         if pending_received or pending_sent:

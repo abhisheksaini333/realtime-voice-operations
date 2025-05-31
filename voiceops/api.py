@@ -154,6 +154,10 @@ def server(ledger, transfers, supervisor, tokens, *, host="127.0.0.1", port=1817
                         return self.send(200, {"calls": ledger.list_calls(owner), "drain": ledger.drain_status(now=clock())})
                     if path == "/api/targets":
                         return self.send(200, {"targets": transfers.targets})
+                    if len(parts) == 4 and parts[:2] == ["api", "calls"] and parts[3] == "recording":
+                        if role == "viewer":
+                            raise AccessDenied("Audio access requires an operator")
+                        return self.send(200, privacy.recording(parts[2], owner), "audio/wav")
                     if len(parts) == 3 and parts[:2] == ["api", "calls"]:
                         call_id = parts[2]
                         call = ledger.get(call_id, owner)
