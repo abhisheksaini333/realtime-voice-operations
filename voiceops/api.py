@@ -193,9 +193,12 @@ def server(ledger, transfers, supervisor, tokens, *, host="127.0.0.1", port=1817
                                                                 recording=payload.get("recording"), attestation=payload.get("attestation"), now=clock()))
                         if action == "hangup":
                             return self.send(200, asyncio.run(supervisor.hangup(call_id, owner)))
-                    if len(parts) == 4 and parts[:2] == ["api", "transfers"] and parts[3] == "approve":
-                        transfers.approve(parts[2], owner, payload.get("digest"), principal["name"], now=clock())
-                        return self.send(200, asyncio.run(supervisor.dispatch(parts[2], owner)))
+                    if len(parts) == 4 and parts[:2] == ["api", "transfers"]:
+                        if parts[3] == "cancel":
+                            return self.send(200, transfers.cancel(parts[2], owner, now=clock()))
+                        if parts[3] == "approve":
+                            transfers.approve(parts[2], owner, payload.get("digest"), principal["name"], now=clock())
+                            return self.send(200, asyncio.run(supervisor.dispatch(parts[2], owner)))
                 raise CallNotFound("Operation unavailable")
             except AccessDenied as exc:
                 self.send(403, {"error": "forbidden", "message": str(exc)})

@@ -33,12 +33,17 @@ class TransferService:
 
     def propose(self, call_id, owner, target, *, now):
         now = timestamp(now)
-        if target not in self.targets:
+        if not isinstance(target, str) or target not in self.targets:
             raise InvalidCall("Unknown transfer target")
         with self.ledger.transaction() as db:
             call = self.ledger._owned(db, call_id, owner)
             if call["status"] != "answered":
                 raise InvalidCall("Call must be answered before transfer")
+            expired = db.execute("SELECT id FROM transfers WHERE call_id=? AND state IN "
+                                 "('proposed','approved') AND expires_at<=?", (call_id, now)).fetchall()
+            for operation in expired:
+                db.execute("UPDATE transfers SET state='expired',completed_at=? WHERE id=?", (now, operation[0]))
+                self.ledger._event(db, call_id, "transfer_expired", now, {"transfer_id": operation[0]})
             if db.execute("SELECT 1 FROM transfers WHERE call_id=? AND state IN "
                           "('proposed','approved','dispatched','outcome_unknown')", (call_id,)).fetchone():
                 raise InvalidCall("Call already has a pending transfer")
@@ -87,6 +92,16 @@ class TransferService:
             db.execute("UPDATE transfers SET state='approved',approver=? WHERE id=?", (approver, transfer_id))
             self.ledger._event(db, proposal["call_id"], "transfer_approved", now,
                                {"transfer_id": transfer_id, "approver": approver, "digest": digest})
+            return self._owned(db, transfer_id, owner)
+
+    def cancel(self, transfer_id, owner, *, now):
+        now = timestamp(now)
+        with self.ledger.transaction() as db:
+            proposal = self._owned(db, transfer_id, owner)
+            if proposal["state"] not in {"proposed", "approved"} or now < proposal["created_at"]:
+                raise InvalidCall("Only an undispatched proposal can be canceled")
+            db.execute("UPDATE transfers SET state='canceled',completed_at=? WHERE id=?", (now, transfer_id))
+            self.ledger._event(db, proposal["call_id"], "transfer_canceled", now, {"transfer_id": transfer_id})
             return self._owned(db, transfer_id, owner)
 
     def claim(self, transfer_id, owner, *, now):

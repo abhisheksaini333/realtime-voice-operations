@@ -118,3 +118,21 @@ class TransferTests(unittest.TestCase):
         self.service.reconcile(operation["id"], "team-a", "unanswered",
                                {"original_active": False, "audio_sent": 0, "audio_received": 0}, now=106)
         self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "ended")
+
+    def test_expired_proposal_does_not_permanently_block_future_transfers(self):
+        old = self.service.propose(self.call["id"], "team-a", "operator", now=102)
+        fresh = self.service.propose(self.call["id"], "team-a", "operator", now=163)
+        self.assertNotEqual(old["id"], fresh["id"])
+        with self.ledger.connection() as db:
+            self.assertEqual(db.execute("SELECT state FROM transfers WHERE id=?", (old["id"],)).fetchone()[0], "expired")
+
+    def test_undispatched_approval_can_be_canceled_but_dispatched_operation_cannot(self):
+        old = self.service.propose(self.call["id"], "team-a", "operator", now=102)
+        self.service.cancel(old["id"], "team-a", now=103)
+        operation = self.dispatched()
+        with self.assertRaises(InvalidCall):
+            self.service.cancel(operation["id"], "team-a", now=105)
+
+    def test_non_string_target_is_a_validation_error(self):
+        with self.assertRaises(InvalidCall):
+            self.service.propose(self.call["id"], "team-a", {}, now=102)
