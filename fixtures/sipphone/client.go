@@ -164,26 +164,37 @@ func NewClient(id string, conf ClientConfig) (*Client, error) {
 }
 
 type Client struct {
-	id            string
-	conf          ClientConfig
-	log           *slog.Logger
-	ack           chan struct{}
-	audioCodec    rtp.AudioCodec
-	audioType     byte
-	mediaConn     *rtp.Conn
-	mux           *rtp.Mux
-	media         *rtp.SeqWriter
-	mediaAudio    *rtp.Stream
-	mediaDTMF     *rtp.Stream
-	audioOut      *mixer.Mixer
-	sipClient     *sipgo.Client
-	sipServer     *sipgo.Server
-	inviteReq     *sip.Request
-	inviteResp    *sip.Response
-	recordHandler atomic.Pointer[rtp.Handler]
-	lastCSeq      atomic.Uint32
-	closed        core.Fuse
+	id              string
+	conf            ClientConfig
+	log             *slog.Logger
+	ack             chan struct{}
+	audioCodec      rtp.AudioCodec
+	audioType       byte
+	mediaConn       *rtp.Conn
+	mux             *rtp.Mux
+	media           *rtp.SeqWriter
+	mediaAudio      *rtp.Stream
+	mediaDTMF       *rtp.Stream
+	audioOut        *mixer.Mixer
+	sipClient       *sipgo.Client
+	sipServer       *sipgo.Server
+	inviteReq       *sip.Request
+	inviteResp      *sip.Response
+	recordHandler   atomic.Pointer[rtp.Handler]
+	lastCSeq        atomic.Uint32
+	closed          core.Fuse
+	sentSamples     atomic.Int64
+	receivedSamples atomic.Int64
 }
+
+func (c *Client) CallID() string {
+	if c.inviteReq == nil {
+		return ""
+	}
+	return c.inviteReq.CallID().Value()
+}
+
+func (c *Client) SampleCounts() (int64, int64) { return c.sentSamples.Load(), c.receivedSamples.Load() }
 
 func (c *Client) LocalIP() string {
 	return c.conf.IP.String()
@@ -220,6 +231,9 @@ func (c *Client) setupRTPReceiver() {
 
 	c.mux = rtp.NewMux(rtp.HandlerFunc(func(hdr *rtp.Header, payload []byte) error {
 		lastTs.Store(hdr.Timestamp)
+		if hdr.PayloadType == 0 {
+			c.receivedSamples.Add(int64(len(payload)))
+		}
 
 		h := c.recordHandler.Load()
 		if h != nil {
@@ -643,6 +657,7 @@ func (c *Client) SendSignal(ctx context.Context, n int, val int) error {
 		if err := wr.WriteSample(signal); err != nil {
 			return err
 		}
+		c.sentSamples.Add(int64(len(signal)))
 		i++
 	}
 	return nil

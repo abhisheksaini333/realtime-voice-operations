@@ -8,6 +8,7 @@ import (
 	"github.com/emiago/sipgo/sip"
 	"net/netip"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -23,7 +24,7 @@ func media(ctx context.Context, c *siptest.Client) error {
 	}
 }
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), fixtureDuration())
 	defer cancel()
 	mode := "operator"
 	if len(os.Args) > 1 {
@@ -102,7 +103,8 @@ func main() {
 		if err = media(ctx, second); err != nil {
 			panic(err)
 		}
-		emit(map[string]interface{}{"stage": "complete", "outcome": "connected", "second_answered": true, "second_audio": true, "original_bye": true, "elapsed_ms": time.Since(start).Milliseconds(), "refer_call_id": req.CallID().Value()})
+		sent, received := second.SampleCounts()
+		emit(map[string]interface{}{"second_dialog_id": second.CallID(), "audio_sent": sent, "audio_received": received, "stage": "complete", "outcome": "connected", "second_answered": true, "second_audio": true, "original_bye": true, "elapsed_ms": time.Since(start).Milliseconds(), "refer_call_id": req.CallID().Value()})
 	} else {
 		if err == nil {
 			panic("failure endpoint unexpectedly answered")
@@ -130,4 +132,16 @@ func callerNumber() string {
 		return value
 	}
 	return "1001"
+}
+
+func fixtureDuration() time.Duration {
+	value := os.Getenv("SIP_TIMEOUT_SECONDS")
+	if value == "" {
+		return 40 * time.Second
+	}
+	seconds, err := strconv.Atoi(value)
+	if err != nil || seconds < 5 || seconds > 600 {
+		panic("SIP_TIMEOUT_SECONDS must be5..600")
+	}
+	return time.Duration(seconds) * time.Second
 }
