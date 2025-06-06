@@ -13,6 +13,7 @@ from .ledger import CallLedger, InvalidCall
 from .livekit_gateway import LiveKitGateway
 from .observations import Observations
 from .privacy import PrivacyStore
+from .registry import CallRegistry
 from .supervisor import Supervisor
 from .transfers import TransferService
 
@@ -51,7 +52,9 @@ async def serve(args):
     source = rtc.AudioSource(8000, 1)
     track = rtc.LocalAudioTrack.create_audio_track("local-media-check", source)
     tasks = set()
-    calls = {}
+    registry = CallRegistry(ledger, args.owner, args.room)
+    calls = registry.calls
+    media_tasks = {}
     stopping = False
     output_enabled = True
 
@@ -63,21 +66,14 @@ async def serve(args):
             if not done.cancelled() and done.exception():
                 print(json.dumps({"event": "worker_task_failed", "type": type(done.exception()).__name__}), flush=True)
         task.add_done_callback(finished)
+        return task
 
     def admitted(participant):
-        if "sip.callID" not in participant.attributes:
+        current = room.remote_participants.get(participant.identity)
+        if current is None or current.sid != participant.sid:
             return None
-        if participant.identity in calls:
-            return calls[participant.identity]
         try:
-            call = ledger.admit(owner=args.owner, caller=participant.attributes.get("sip.phoneNumber", ""),
-                                room=args.room, participant=participant.identity, now=time.time())
-            calls[participant.identity] = call["id"]
-            with ledger.transaction() as db:
-                ledger._event(db, call["id"], "sip_dialog_observed", time.time(),
-                              {"sip_call_id": participant.attributes.get("sip.callIDFull"),
-                               "bridge_call_id": participant.attributes["sip.callID"]})
-            return call["id"]
+            return registry.admit(participant, now=time.time())
         except InvalidCall:
             spawn(gateway.hangup(args.room, participant.identity))
             return None
@@ -88,7 +84,11 @@ async def serve(args):
         consent_version = None
         last_flush = time.monotonic()
         async for event in rtc.AudioStream(remote, sample_rate=8000, num_channels=1):
+            if not registry.matches(participant):
+                break
             call = ledger.get(call_id, args.owner)
+            if call["status"] in {"ended", "failed", "transferred"}:
+                break
             if call["status"] in {"admitted", "ringing"} and participant.attributes.get("sip.callStatus") == "active":
                 ledger.transition(call_id, args.owner, "answered", now=time.time(), version=call["version"])
             pending_received += event.frame.samples_per_channel
@@ -122,12 +122,23 @@ async def serve(args):
         if remote.kind == rtc.TrackKind.KIND_AUDIO:
             call_id = admitted(participant)
             if call_id:
-                spawn(echo(remote, participant, call_id))
+                previous = media_tasks.pop(participant.identity, None)
+                if previous:
+                    previous.cancel()
+                media_tasks[participant.identity] = spawn(echo(remote, participant, call_id))
+
+    @room.on("participant_disconnected")
+    def disconnected(participant):
+        if registry.disconnect(participant, now=time.time()):
+            previous = media_tasks.pop(participant.identity, None)
+            if previous:
+                previous.cancel()
+            source.clear_queue()
 
     @room.on("sip_dtmf_received")
     def dtmf(event):
         participant = event.participant
-        if participant and participant.identity in calls:
+        if participant and registry.matches(participant):
             observations.dtmf(calls[participant.identity], args.owner, participant.identity, event.digit, now=time.time())
 
     token = api.AccessToken(args.api_key, args.api_secret).with_identity("voiceops-worker").with_grants(
@@ -180,7 +191,7 @@ def arguments():
     parser.add_argument("--database", default=".runtime/calls.sqlite")
     parser.add_argument("--room", default="voiceops-local")
     parser.add_argument("--owner", default="local-team")
-    parser.add_argument("--capacity", type=int, default=1, choices=range(1, 5))
+    parser.add_argument("--capacity", type=int, default=1, choices=[1], help="The reference worker supports one call per private room")
     parser.add_argument("--media-timeout", type=int, default=15, choices=range(5, 61))
     parser.add_argument("--allow-test-faults", action="store_true", help="Allow SIGUSR1 to stop local audio output for failure tests")
     parser.add_argument("--url", default=os.environ.get("LIVEKIT_URL", "http://127.0.0.1:18140"))
