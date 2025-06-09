@@ -12,7 +12,7 @@ class PrivacyStore:
                 CREATE TABLE IF NOT EXISTS consent (
                     call_id TEXT PRIMARY KEY REFERENCES calls(id),
                     transcript INTEGER NOT NULL, recording INTEGER NOT NULL,
-                    attestation TEXT NOT NULL, observed_at REAL NOT NULL
+                    attestation TEXT NOT NULL, observed_at REAL NOT NULL, revision INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE TABLE IF NOT EXISTS transcripts (
                     sequence INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,6 +24,12 @@ class PrivacyStore:
                     wav BLOB NOT NULL, observed_at REAL NOT NULL
                 );
             """)
+        # Serialize migration across an API process and its worker. Existing
+        # consent remains valid as revision zero until its next explicit change.
+        with ledger.transaction() as db:
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(consent)")}
+            if "revision" not in columns:
+                db.execute("ALTER TABLE consent ADD COLUMN revision INTEGER NOT NULL DEFAULT 0")
 
     def consent(self, call_id, owner, *, transcript, recording, attestation, now):
         now = timestamp(now)
@@ -36,9 +42,10 @@ class PrivacyStore:
             prior = db.execute("SELECT observed_at FROM consent WHERE call_id=?", (call_id,)).fetchone()
             if prior and now < prior[0]:
                 raise InvalidCall("Consent observation is stale")
-            db.execute("INSERT INTO consent VALUES(?,?,?,?,?) ON CONFLICT(call_id) DO UPDATE SET "
+            db.execute("INSERT INTO consent(call_id,transcript,recording,attestation,observed_at,revision) "
+                       "VALUES(?,?,?,?,?,1) ON CONFLICT(call_id) DO UPDATE SET "
                        "transcript=excluded.transcript,recording=excluded.recording,"
-                       "attestation=excluded.attestation,observed_at=excluded.observed_at",
+                       "attestation=excluded.attestation,observed_at=excluded.observed_at,revision=consent.revision+1",
                        (call_id, transcript, recording, attestation, now))
             if not transcript:
                 db.execute("DELETE FROM transcripts WHERE call_id=?", (call_id,))
@@ -52,7 +59,7 @@ class PrivacyStore:
         with self.ledger.connection() as db:
             self.ledger._owned(db, call_id, owner)
             row = db.execute("SELECT * FROM consent WHERE call_id=?", (call_id,)).fetchone()
-            return dict(row) if row else {"transcript": False, "recording": False}
+            return dict(row) if row else {"transcript": False, "recording": False, "revision": 0}
 
     def append(self, call_id, owner, speaker, text, *, now):
         now = timestamp(now)
@@ -83,7 +90,7 @@ class PrivacyStore:
             count = db.execute("DELETE FROM transcripts WHERE observed_at<?", (before,)).rowcount
             return count + db.execute("DELETE FROM recordings WHERE observed_at<?", (before,)).rowcount
 
-    def record(self, call_id, owner, pcm, *, sample_rate, now):
+    def record(self, call_id, owner, pcm, *, sample_rate, now, consent_revision=None):
         now = timestamp(now)
         if sample_rate not in {8000, 16000} or not isinstance(pcm, bytes) or not pcm or len(pcm) % 2:
             raise InvalidCall("Expected mono PCM16 audio at 8 or 16 kHz")
@@ -92,8 +99,9 @@ class PrivacyStore:
         with self.ledger.transaction() as db:
             self.ledger._owned(db, call_id, owner)
             consent = db.execute("SELECT * FROM consent WHERE call_id=?", (call_id,)).fetchone()
-            if not consent or not consent["recording"] or now < consent["observed_at"]:
-                raise InvalidCall("Audio retention requires current recording consent")
+            if (not consent or not consent["recording"] or now < consent["observed_at"]
+                    or type(consent_revision) is not int or consent_revision != consent["revision"]):
+                raise InvalidCall("Audio retention requires the buffer's current recording consent revision")
             output = io.BytesIO()
             with wave.open(output, "wb") as writer:
                 writer.setnchannels(1)

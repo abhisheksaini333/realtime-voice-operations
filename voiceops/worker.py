@@ -93,9 +93,9 @@ async def serve(args):
                 ledger.transition(call_id, args.owner, "answered", now=time.time(), version=call["version"])
             pending_received += event.frame.samples_per_channel
             consent = privacy.settings(call_id, args.owner)
-            if consent.get("observed_at") != consent_version:
+            if consent["revision"] != consent_version:
                 recording.clear()
-                consent_version = consent.get("observed_at")
+                consent_version = consent["revision"]
             if consent["recording"] and len(recording) < 960000:
                 recording.extend(bytes(event.frame.data)[:960000 - len(recording)])
             if output_enabled:
@@ -105,7 +105,8 @@ async def serve(args):
                 observations.media(call_id, args.owner, received=pending_received, sent=pending_sent, now=time.time())
                 if recording:
                     try:
-                        privacy.record(call_id, args.owner, bytes(recording), sample_rate=8000, now=time.time())
+                        privacy.record(call_id, args.owner, bytes(recording), sample_rate=8000,
+                                       now=time.time(), consent_revision=consent_version)
                     except InvalidCall:
                         recording.clear()  # Consent may have been withdrawn during this frame.
                 pending_received = pending_sent = 0
