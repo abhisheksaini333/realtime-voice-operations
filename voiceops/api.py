@@ -33,6 +33,11 @@ def server(ledger, transfers, supervisor, tokens, *, host="127.0.0.1", port=1817
         identifier(principal.get("owner"), "owner")
     privacy, observations = PrivacyStore(ledger), Observations(ledger)
 
+    def public_drain_status():
+        status = ledger.drain_status(now=clock())
+        # The worker's termination queue spans owners and is not API metadata.
+        return {key: value for key, value in status.items() if key != "needs_termination"}
+
     class BoundedServer(ThreadingHTTPServer):
         daemon_threads = True
         def __init__(self, address, handler):
@@ -151,7 +156,7 @@ def server(ledger, transfers, supervisor, tokens, *, host="127.0.0.1", port=1817
                     if path == "/api/session":
                         return self.send(200, principal)
                     if path == "/api/calls":
-                        return self.send(200, {"calls": ledger.list_calls(owner), "drain": ledger.drain_status(now=clock())})
+                        return self.send(200, {"calls": ledger.list_calls(owner), "drain": public_drain_status()})
                     if path == "/api/targets":
                         return self.send(200, {"targets": transfers.targets})
                     if len(parts) == 4 and parts[:2] == ["api", "calls"] and parts[3] == "recording":
@@ -182,7 +187,7 @@ def server(ledger, transfers, supervisor, tokens, *, host="127.0.0.1", port=1817
                                 if db.execute("SELECT count(*) FROM calls WHERE status NOT IN ('ended','failed','transferred')").fetchone()[0]:
                                     raise InvalidCall("Wait for active calls to finish before resuming")
                                 db.execute("DELETE FROM settings WHERE key='drain_deadline'")
-                        return self.send(200, ledger.drain_status(now=clock()))
+                        return self.send(200, public_drain_status())
                     if len(parts) == 4 and parts[:2] == ["api", "calls"]:
                         call_id, action = parts[2:]
                         ledger.get(call_id, owner)

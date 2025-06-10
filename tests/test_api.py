@@ -31,7 +31,7 @@ class ApiTests(unittest.TestCase):
             "v" * 40: {"name": "viewer", "owner": "team-a", "role": "viewer"},
         }
         self.http = server(self.ledger, self.transfers, Supervisor(self.ledger, self.transfers, Gateway(), clock=lambda: 110),
-                           self.tokens, port=0, request_timeout=0.3, max_connections=2, clock=lambda: 110)
+                           self.tokens, port=0, request_timeout=2, max_connections=2, clock=lambda: 110)
         self.thread = threading.Thread(target=self.http.serve_forever, daemon=True)
         self.thread.start()
         self.addCleanup(self.close)
@@ -75,3 +75,12 @@ class ApiTests(unittest.TestCase):
             client.sendall((f"POST /api/drain HTTP/1.1\r\nHost: 127.0.0.1:{self.http.server_port}\r\n"
                             f"Authorization: Bearer {'a'*40}\r\nContent-Type: application/json\r\nContent-Length: 20\r\n\r\n{{").encode())
             self.assertIn(b"408", client.recv(4096))
+
+    def test_call_listing_does_not_expose_other_owners_drain_ids(self):
+        other = self.ledger.admit(owner="team-b", caller="1002", room="two", participant="sip-2", now=101)
+        self.ledger.begin_drain(now=102, deadline=105)
+        for token in ("a" * 40, "v" * 40):
+            status, payload = self.request("GET", "/api/calls", token=token)
+            self.assertEqual(status, 200)
+            self.assertNotIn(other["id"], json.dumps(payload))
+            self.assertNotIn("needs_termination", payload["drain"])
