@@ -90,6 +90,18 @@ class TransferTests(unittest.TestCase):
         self.assertEqual(recovered, [operation["id"]])
         self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "transfer_unknown")
 
+    def test_recent_interrupted_dispatch_becomes_uncertain_on_later_poll(self):
+        import json
+        operation = self.dispatched()
+        self.assertEqual(self.service.recover_dispatched(now=110, older_than=100), [])
+        self.assertEqual(self.service.recover_dispatched(now=115, older_than=105, reason="timeout"), [operation["id"]])
+        with self.ledger.connection() as db:
+            row = dict(db.execute("SELECT * FROM transfers WHERE id=?", (operation["id"],)).fetchone())
+        self.assertEqual(json.loads(row["evidence"])["reason"], "timeout")
+        self.assertEqual(self.service.recover_dispatched(now=120, older_than=110, reason="timeout"), [])
+        with self.assertRaises(InvalidCall):
+            self.service.claim(operation["id"], "team-a", now=121)
+
     def test_success_requires_second_dialog_and_both_audio_directions(self):
         operation = self.dispatched()
         for evidence in ({"api_ok": True}, {"dialog_id": "second", "answered": True,

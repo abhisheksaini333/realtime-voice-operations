@@ -139,15 +139,15 @@ class TransferService:
         with self.ledger.transaction() as db:
             return self._unknown(db, self._owned(db, transfer_id, owner), reason, now)
 
-    def recover_dispatched(self, *, now, older_than):
+    def recover_dispatched(self, *, now, older_than, reason="worker_restart"):
         now, older_than = timestamp(now), timestamp(older_than)
-        if older_than > now:
+        if older_than > now or reason not in {"worker_restart", "timeout"}:
             raise InvalidCall("Recovery cutoff cannot be in the future")
         with self.ledger.transaction() as db:
             pending = db.execute("SELECT * FROM transfers WHERE state='dispatched' "
                                  "AND dispatched_at<=? ORDER BY dispatched_at,id", (older_than,)).fetchall()
             for proposal in pending:
-                self._unknown(db, dict(proposal), "worker_restart", now)
+                self._unknown(db, dict(proposal), reason, now)
             return [proposal["id"] for proposal in pending]
 
     def reconcile(self, transfer_id, owner, outcome, evidence, *, now):

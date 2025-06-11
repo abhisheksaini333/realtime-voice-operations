@@ -36,6 +36,10 @@ def worker_lock(path):
 async def serve(args):
     from livekit import api, rtc
     ledger = CallLedger(args.database, max_active_calls=args.capacity)
+    # The API may have initialized the database before the worker. Enforce this
+    # worker's single private-room limit in the persisted admission transaction.
+    with ledger.transaction() as db:
+        db.execute("UPDATE settings SET value='1' WHERE key='capacity'")
     observations = Observations(ledger)
     privacy = PrivacyStore(ledger)
     gateway = LiveKitGateway(args.url, args.api_key, args.api_secret)
@@ -56,6 +60,7 @@ async def serve(args):
     calls = registry.calls
     media_tasks = {}
     stopping = False
+    stop_deadline = None
     output_enabled = True
 
     def spawn(coroutine):
@@ -146,9 +151,10 @@ async def serve(args):
         api.VideoGrants(room_join=True, room=args.room)).to_jwt()
 
     def stop():
-        nonlocal stopping
+        nonlocal stopping, stop_deadline
         if not stopping:
             stopping = True
+            stop_deadline = time.monotonic() + 20
             ledger.begin_drain(now=time.time(), deadline=time.time() + 10)
 
     def interrupt_output():
@@ -160,6 +166,21 @@ async def serve(args):
         loop.add_signal_handler(sig, stop)
     if args.allow_test_faults:
         loop.add_signal_handler(signal.SIGUSR1, interrupt_output)
+    async def maintain():
+        # Keep checking after startup: a recent interrupted dispatch becomes
+        # uncertain once its observation window expires and is never replayed.
+        transfers.recover_dispatched(now=time.time(), older_than=time.time() - 10, reason="timeout")
+        await supervisor.reconcile(args.owner)
+        await supervisor.enforce_drain(args.owner)
+        for call in ledger.list_calls(args.owner):
+            if call["status"] not in {"ended", "failed", "transferred"} and observations.health(
+                    call["id"], args.owner, now=time.time(), timeout=args.media_timeout)["stale"]:
+                try:
+                    await supervisor.hangup(call["id"], args.owner)
+                except Exception:
+                    pass  # Preserve uncertainty until a real observation succeeds.
+
+    unresolved_shutdown = False
     try:
         await room.connect(args.url.replace("http://", "ws://", 1), token)
         await room.local_participant.publish_track(track, rtc.TrackPublishOptions(source=rtc.TrackSource.SOURCE_MICROPHONE))
@@ -167,24 +188,30 @@ async def serve(args):
             admitted(participant)
         print(json.dumps({"event": "ready", "room": args.room, "recovery": recovered}), flush=True)
         while True:
-            await supervisor.reconcile(args.owner)
-            await supervisor.enforce_drain(args.owner)
-            for call in ledger.list_calls(args.owner):
-                if call["status"] not in {"ended", "failed", "transferred"} and observations.health(
-                        call["id"], args.owner, now=time.time(), timeout=args.media_timeout)["stale"]:
-                    try:
-                        await supervisor.hangup(call["id"], args.owner)
-                    except Exception:
-                        pass  # State remains unresolved until a later actual lookup succeeds.
+            remaining = stop_deadline - time.monotonic() if stop_deadline else 8
+            if remaining <= 0:
+                unresolved_shutdown = not ledger.drain_status(now=time.time())["complete"]
+                break
+            try:
+                await asyncio.wait_for(maintain(), min(8, remaining))
+            except asyncio.TimeoutError:
+                print(json.dumps({"event": "control_cycle_timeout"}), flush=True)
             if stopping and ledger.drain_status(now=time.time())["complete"]:
                 break
             await asyncio.sleep(0.25)
     finally:
         for task in tasks:
             task.cancel()
-        await asyncio.gather(*tasks, return_exceptions=True)
-        await room.disconnect()
-        await source.aclose()
+        async def cleanup():
+            await asyncio.gather(*tasks, return_exceptions=True)
+            await room.disconnect()
+            await source.aclose()
+        try:
+            await asyncio.wait_for(cleanup(), 3)
+        except asyncio.TimeoutError:
+            unresolved_shutdown = True
+    if unresolved_shutdown:
+        raise RuntimeError("Shutdown deadline reached; unresolved calls remain recorded for reconciliation")
 
 
 def arguments():
