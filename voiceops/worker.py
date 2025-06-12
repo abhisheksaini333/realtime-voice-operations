@@ -80,7 +80,7 @@ async def serve(args):
         try:
             return registry.admit(participant, now=time.time())
         except InvalidCall:
-            spawn(gateway.hangup(args.room, participant.identity))
+            spawn(gateway.hangup(args.room, participant.identity, expected_sid=participant.sid))
             return None
 
     async def echo(remote, participant, call_id):

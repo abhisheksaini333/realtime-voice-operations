@@ -14,12 +14,18 @@ class Supervisor:
         with self.ledger.transaction() as db:
             self.ledger._event(db, call_id, kind, self.clock(), data)
 
+    def _session(self, call):
+        for event in reversed(self.ledger.events(call["id"], call["owner"])):
+            if event["kind"] == "sip_dialog_observed":
+                return {"expected_sid": event["data"]["participant_sid"]}
+        return {}  # Pure ledger fixtures do not contain a SIP observation.
+
     async def dispatch(self, transfer_id, owner):
         operation = self.transfers.claim(transfer_id, owner, now=self.clock())
         call = self.ledger.get(operation["call_id"], owner)
         try:
             await asyncio.wait_for(self.gateway.transfer(call["room"], call["participant"],
-                                                         operation["target_uri"]), self.timeout)
+                                                         operation["target_uri"], **self._session(call)), self.timeout)
         except Exception:
             return self.transfers.mark_unknown(transfer_id, owner, "lost_response", now=self.clock())
         self._event(call["id"], "transfer_api_acknowledged", {"transfer_id": transfer_id})
@@ -31,7 +37,7 @@ class Supervisor:
             if call["status"] in {"ended", "failed", "transferred"}:
                 continue
             try:
-                active = await asyncio.wait_for(self.gateway.active(call["room"], call["participant"]), self.timeout)
+                active = await asyncio.wait_for(self.gateway.active(call["room"], call["participant"], **self._session(call)), self.timeout)
                 if active:
                     report["active"].append(call["id"])
                 else:
@@ -46,8 +52,8 @@ class Supervisor:
         if call["status"] in {"ended", "failed", "transferred"}:
             raise InvalidCall("Call is already terminal")
         self._event(call_id, "hangup_requested", {})
-        await asyncio.wait_for(self.gateway.hangup(call["room"], call["participant"]), self.timeout)
-        if await asyncio.wait_for(self.gateway.active(call["room"], call["participant"]), self.timeout):
+        await asyncio.wait_for(self.gateway.hangup(call["room"], call["participant"], **self._session(call)), self.timeout)
+        if await asyncio.wait_for(self.gateway.active(call["room"], call["participant"], **self._session(call)), self.timeout):
             raise InvalidCall("Hangup is not yet confirmed")
         current = self.ledger.get(call_id, owner)
         if current["status"] not in {"ended", "failed", "transferred"}:

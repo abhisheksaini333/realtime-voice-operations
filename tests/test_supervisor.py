@@ -14,13 +14,16 @@ class Gateway:
         self.transfers = []
         self.hangups = 0
         self.fail = False
+        self.sid = "PA_original"
 
-    async def active(self, room, participant):
+    async def active(self, room, participant, *, expected_sid=None):
         if self.fail:
             raise ConnectionError("offline")
-        return self.present
+        return self.present and (expected_sid is None or expected_sid == self.sid)
 
-    async def hangup(self, room, participant):
+    async def hangup(self, room, participant, *, expected_sid=None):
+        if expected_sid and expected_sid != self.sid:
+            return
         self.hangups += 1
         self.present = False
 
@@ -70,6 +73,16 @@ class SupervisorTests(unittest.IsolatedAsyncioTestCase):
         report = await self.supervisor.reconcile("team-a")
         self.assertEqual(report["unavailable"], [self.call["id"]])
         self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "answered")
+
+    async def test_replacement_identity_is_not_hung_up_as_the_old_dialog(self):
+        with self.ledger.transaction() as db:
+            self.ledger._event(db, self.call["id"], "sip_dialog_observed", 102,
+                               {"participant_sid": "PA_original"})
+        self.gateway.sid = "PA_replacement"
+        result = await self.supervisor.hangup(self.call["id"], "team-a")
+        self.assertEqual(result["status"], "ended")
+        self.assertEqual(self.gateway.hangups, 0)
+        self.assertTrue(self.gateway.present)
 
     async def test_drain_waits_before_deadline_then_observes_actual_hangup(self):
         self.ledger.begin_drain(now=102, deadline=109)
