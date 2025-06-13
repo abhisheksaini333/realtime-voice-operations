@@ -84,6 +84,25 @@ class SupervisorTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.gateway.hangups, 0)
         self.assertTrue(self.gateway.present)
 
+    async def test_legacy_session_uses_both_observed_sip_identifiers(self):
+        from unittest.mock import AsyncMock
+        with self.ledger.transaction() as db:
+            self.ledger._event(db, self.call["id"], "sip_dialog_observed", 102,
+                               {"sip_call_id": "old-dialog", "bridge_call_id": "SCL_old"})
+        self.gateway.hangup = AsyncMock()
+        self.gateway.active = AsyncMock(return_value=False)
+        await self.supervisor.hangup(self.call["id"], "team-a")
+        self.gateway.hangup.assert_awaited_once_with("one", "sip-1",
+            expected_sip_call_id="old-dialog", expected_bridge_call_id="SCL_old")
+
+    async def test_legacy_incomplete_observation_stays_unresolved(self):
+        with self.ledger.transaction() as db:
+            self.ledger._event(db, self.call["id"], "sip_dialog_observed", 102, {})
+        with self.assertRaisesRegex(InvalidCall, "manual reconciliation"):
+            await self.supervisor.hangup(self.call["id"], "team-a")
+        self.assertEqual(self.gateway.hangups, 0)
+        self.assertEqual(self.ledger.get(self.call["id"], "team-a")["status"], "answered")
+
     async def test_drain_waits_before_deadline_then_observes_actual_hangup(self):
         self.ledger.begin_drain(now=102, deadline=109)
         self.supervisor.clock = lambda: 105

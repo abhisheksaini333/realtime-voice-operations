@@ -17,7 +17,13 @@ class Supervisor:
     def _session(self, call):
         for event in reversed(self.ledger.events(call["id"], call["owner"])):
             if event["kind"] == "sip_dialog_observed":
-                return {"expected_sid": event["data"]["participant_sid"]}
+                data = event["data"]
+                if data.get("participant_sid"):
+                    return {"expected_sid": data["participant_sid"]}
+                if data.get("sip_call_id") and data.get("bridge_call_id"):
+                    return {"expected_sip_call_id": data["sip_call_id"],
+                            "expected_bridge_call_id": data["bridge_call_id"]}
+                raise InvalidCall("Observed call lacks a stable dialog identifier; manual reconciliation is required")
         return {}  # Pure ledger fixtures do not contain a SIP observation.
 
     async def dispatch(self, transfer_id, owner):
