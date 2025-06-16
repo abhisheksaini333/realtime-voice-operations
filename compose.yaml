@@ -1,0 +1,34 @@
+name: voiceops-reference
+services:
+  redis:
+    image: redis@sha256:121bac949fb5f623b9fa0b4e4c9fb358ffd045966e754cfa3eb9963f3af2fe3b
+    command: [redis-server, --save, "", --appendonly, "no"]
+    ports: ["127.0.0.1:18149:6379"]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+  livekit:
+    image: livekit/livekit-server@sha256:621fd87bd64a0c83e1f2418ee0323eb920d00acdd73e5f79b303c64f6cc532af
+    command: [--config, /etc/livekit.yaml, --node-ip, 127.0.0.1]
+    volumes: ["./infra/livekit.yaml:/etc/livekit.yaml:ro"]
+    ports:
+      - "127.0.0.1:18140:7880"
+      - "127.0.0.1:18141:7881"
+      - "127.0.0.1:18142:18142/udp"
+    depends_on:
+      redis:
+        condition: service_healthy
+    security_opt: [no-new-privileges:true]
+  pbx:
+    image: andrius/asterisk@sha256:ee9e82e0a8ed2b3539cf9a473834361a7a422a6caa1e12112eaf0ee619a71f6e
+    volumes:
+      - ./infra/asterisk/pjsip.conf:/etc/asterisk/pjsip.conf:ro
+      - ./infra/asterisk/extensions.conf:/etc/asterisk/extensions.conf:ro
+      - ./infra/asterisk/rtp.conf:/etc/asterisk/rtp.conf:ro
+    ports:
+      - "127.0.0.1:18160:18160/udp"
+      - "127.0.0.1:18800-18820:18800-18820/udp"
+    security_opt: [no-new-privileges:true]

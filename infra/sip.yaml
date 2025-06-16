@@ -1,0 +1,14 @@
+api_key: devkey
+api_secret: local-demo-secret-voice-operations-123456
+ws_url: ws://127.0.0.1:18140
+redis:
+  address: 127.0.0.1:18149
+sip_port: 18150
+listen_ip: 127.0.0.1
+nat_1_to_1_ip: 127.0.0.1
+media_nat_1_to_1_ip: 127.0.0.1
+rtp_port: 18500-18520
+use_external_ip: false
+max_cpu_utilization: 1
+logging:
+  level: info
