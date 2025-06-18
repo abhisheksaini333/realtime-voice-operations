@@ -1,4 +1,5 @@
 """One local RTC worker per ledger, with bounded recovery and media monitoring."""
+
 import argparse
 import asyncio
 from contextlib import contextmanager
@@ -35,6 +36,9 @@ def worker_lock(path):
 
 async def serve(args):
     from livekit import api, rtc
+    from .speech import load_config, SpeechHooks
+
+    speech_config = load_config(args.speech_config) if args.speech_config else None
     ledger = CallLedger(args.database, max_active_calls=args.capacity)
     # The API may have initialized the database before the worker. Enforce this
     # worker's single private-room limit in the persisted admission transaction.
@@ -43,9 +47,14 @@ async def serve(args):
     observations = Observations(ledger)
     privacy = PrivacyStore(ledger)
     gateway = LiveKitGateway(args.url, args.api_key, args.api_secret)
-    transfers = TransferService(ledger, targets={"operator": "sip:operator@127.0.0.1:18160",
-                                                "reject": "sip:reject@127.0.0.1:18160",
-                                                "unanswered": "sip:unanswered@127.0.0.1:18160"})
+    transfers = TransferService(
+        ledger,
+        targets={
+            "operator": "sip:operator@127.0.0.1:18160",
+            "reject": "sip:reject@127.0.0.1:18160",
+            "unanswered": "sip:unanswered@127.0.0.1:18160",
+        },
+    )
     supervisor = Supervisor(ledger, transfers, gateway)
     transfers.recover_dispatched(now=time.time(), older_than=time.time() - 10)
     recovered = await supervisor.reconcile(args.owner)
@@ -59,6 +68,8 @@ async def serve(args):
     registry = CallRegistry(ledger, args.owner, args.room)
     calls = registry.calls
     media_tasks = {}
+    speech_tasks = {}
+    speech_sessions = {}
     stopping = False
     stop_deadline = None
     output_enabled = True
@@ -66,10 +77,20 @@ async def serve(args):
     def spawn(coroutine):
         task = asyncio.create_task(coroutine)
         tasks.add(task)
+
         def finished(done):
             tasks.discard(done)
             if not done.cancelled() and done.exception():
-                print(json.dumps({"event": "worker_task_failed", "type": type(done.exception()).__name__}), flush=True)
+                print(
+                    json.dumps(
+                        {
+                            "event": "worker_task_failed",
+                            "type": type(done.exception()).__name__,
+                        }
+                    ),
+                    flush=True,
+                )
+
         task.add_done_callback(finished)
         return task
 
@@ -78,10 +99,87 @@ async def serve(args):
         if current is None or current.sid != participant.sid:
             return None
         try:
-            return registry.admit(participant, now=time.time())
+            call_id = registry.admit(participant, now=time.time())
+            if (
+                call_id
+                and speech_config
+                and participant.sid not in speech_tasks
+                and participant.sid not in speech_sessions
+            ):
+                speech_tasks[participant.sid] = spawn(
+                    start_speech(participant, call_id)
+                )
+            return call_id
         except InvalidCall:
-            spawn(gateway.hangup(args.room, participant.identity, expected_sid=participant.sid))
+            spawn(
+                gateway.hangup(
+                    args.room, participant.identity, expected_sid=participant.sid
+                )
+            )
             return None
+
+    async def start_speech(participant, call_id):
+        from .speech_agent import open_session
+
+        hooks = SpeechHooks(ledger, privacy, registry, participant, call_id, args.owner)
+
+        def observe(stage, details):
+            if not hooks.active():
+                return
+            if stage == "rtc_output":
+                observations.media(
+                    call_id,
+                    args.owner,
+                    received=0,
+                    sent=details["samples_8khz"],
+                    now=time.time(),
+                )
+            hooks.observe(stage, details)
+
+        session = None
+        try:
+            session = await open_session(
+                room,
+                participant.identity,
+                speech_config,
+                transcript=hooks.transcript,
+                observe=observe,
+            )
+            if not hooks.active():
+                await session.aclose()
+                return
+            speech_sessions[participant.sid] = session
+            with ledger.transaction() as db:
+                ledger._event(
+                    db,
+                    call_id,
+                    "speech_session_started",
+                    time.time(),
+                    {"turn_control": "dtmf", "outbound_policy": "intermittent"},
+                )
+        except asyncio.CancelledError:
+            if session:
+                await session.aclose()
+            raise
+        except Exception as exc:
+            hooks.observe(
+                "speech_failed", {"stage": "startup", "type": type(exc).__name__}
+            )
+            if registry.matches(participant):
+                await gateway.hangup(
+                    args.room, participant.identity, expected_sid=participant.sid
+                )
+        finally:
+            speech_tasks.pop(participant.sid, None)
+
+    async def close_speech(participant):
+        pending = speech_tasks.pop(participant.sid, None)
+        if pending:
+            pending.cancel()
+            await asyncio.gather(pending, return_exceptions=True)
+        session = speech_sessions.pop(participant.sid, None)
+        if session:
+            await session.aclose()
 
     async def echo(remote, participant, call_id):
         pending_received = pending_sent = 0
@@ -94,30 +192,57 @@ async def serve(args):
             call = ledger.get(call_id, args.owner)
             if call["status"] in {"ended", "failed", "transferred"}:
                 break
-            if call["status"] in {"admitted", "ringing"} and participant.attributes.get("sip.callStatus") == "active":
-                ledger.transition(call_id, args.owner, "answered", now=time.time(), version=call["version"])
+            if (
+                call["status"] in {"admitted", "ringing"}
+                and participant.attributes.get("sip.callStatus") == "active"
+            ):
+                ledger.transition(
+                    call_id,
+                    args.owner,
+                    "answered",
+                    now=time.time(),
+                    version=call["version"],
+                )
             pending_received += event.frame.samples_per_channel
             consent = privacy.settings(call_id, args.owner)
             if consent["revision"] != consent_version:
                 recording.clear()
                 consent_version = consent["revision"]
             if consent["recording"] and len(recording) < 960000:
-                recording.extend(bytes(event.frame.data)[:960000 - len(recording)])
-            if output_enabled:
+                recording.extend(bytes(event.frame.data)[: 960000 - len(recording)])
+            if output_enabled and speech_config is None:
                 await source.capture_frame(event.frame)
                 pending_sent += event.frame.samples_per_channel
             if time.monotonic() - last_flush >= 0.2:
-                observations.media(call_id, args.owner, received=pending_received, sent=pending_sent, now=time.time())
+                observations.media(
+                    call_id,
+                    args.owner,
+                    received=pending_received,
+                    sent=pending_sent,
+                    now=time.time(),
+                )
                 if recording:
                     try:
-                        privacy.record(call_id, args.owner, bytes(recording), sample_rate=8000,
-                                       now=time.time(), consent_revision=consent_version)
+                        privacy.record(
+                            call_id,
+                            args.owner,
+                            bytes(recording),
+                            sample_rate=8000,
+                            now=time.time(),
+                            consent_revision=consent_version,
+                        )
                     except InvalidCall:
                         recording.clear()  # Consent may have been withdrawn during this frame.
                 pending_received = pending_sent = 0
                 last_flush = time.monotonic()
         if pending_received or pending_sent:
-            observations.media(call_id, args.owner, received=pending_received, sent=pending_sent, now=time.time())
+            observations.media(
+                call_id,
+                args.owner,
+                received=pending_received,
+                sent=pending_sent,
+                now=time.time(),
+            )
 
     @room.on("participant_connected")
     def connected(participant):
@@ -131,7 +256,9 @@ async def serve(args):
                 previous = media_tasks.pop(participant.identity, None)
                 if previous:
                     previous.cancel()
-                media_tasks[participant.identity] = spawn(echo(remote, participant, call_id))
+                media_tasks[participant.identity] = spawn(
+                    echo(remote, participant, call_id)
+                )
 
     @room.on("participant_disconnected")
     def disconnected(participant):
@@ -140,15 +267,27 @@ async def serve(args):
             if previous:
                 previous.cancel()
             source.clear_queue()
+            if speech_config:
+                spawn(close_speech(participant))
 
     @room.on("sip_dtmf_received")
     def dtmf(event):
         participant = event.participant
         if participant and registry.matches(participant):
-            observations.dtmf(calls[participant.identity], args.owner, participant.identity, event.digit, now=time.time())
+            observations.dtmf(
+                calls[participant.identity],
+                args.owner,
+                participant.identity,
+                event.digit,
+                now=time.time(),
+            )
 
-    token = api.AccessToken(args.api_key, args.api_secret).with_identity("voiceops-worker").with_grants(
-        api.VideoGrants(room_join=True, room=args.room)).to_jwt()
+    token = (
+        api.AccessToken(args.api_key, args.api_secret)
+        .with_identity("voiceops-worker")
+        .with_grants(api.VideoGrants(room_join=True, room=args.room))
+        .to_jwt()
+    )
 
     def stop():
         nonlocal stopping, stop_deadline
@@ -166,15 +305,25 @@ async def serve(args):
         loop.add_signal_handler(sig, stop)
     if args.allow_test_faults:
         loop.add_signal_handler(signal.SIGUSR1, interrupt_output)
+
     async def maintain():
         # Keep checking after startup: a recent interrupted dispatch becomes
         # uncertain once its observation window expires and is never replayed.
-        transfers.recover_dispatched(now=time.time(), older_than=time.time() - 10, reason="timeout")
+        transfers.recover_dispatched(
+            now=time.time(), older_than=time.time() - 10, reason="timeout"
+        )
         await supervisor.reconcile(args.owner)
         await supervisor.enforce_drain(args.owner)
         for call in ledger.list_calls(args.owner):
-            if call["status"] not in {"ended", "failed", "transferred"} and observations.health(
-                    call["id"], args.owner, now=time.time(), timeout=args.media_timeout)["stale"]:
+            health = observations.health(
+                call["id"],
+                args.owner,
+                now=time.time(),
+                timeout=args.media_timeout,
+                outbound_policy="intermittent" if speech_config else "continuous",
+            )
+            stale = health["stale"]
+            if call["status"] not in {"ended", "failed", "transferred"} and stale:
                 try:
                     await supervisor.hangup(call["id"], args.owner)
                 except Exception:
@@ -183,14 +332,22 @@ async def serve(args):
     unresolved_shutdown = False
     try:
         await room.connect(args.url.replace("http://", "ws://", 1), token)
-        await room.local_participant.publish_track(track, rtc.TrackPublishOptions(source=rtc.TrackSource.SOURCE_MICROPHONE))
+        if speech_config is None:
+            await room.local_participant.publish_track(
+                track, rtc.TrackPublishOptions(source=rtc.TrackSource.SOURCE_MICROPHONE)
+            )
         for participant in room.remote_participants.values():
             admitted(participant)
-        print(json.dumps({"event": "ready", "room": args.room, "recovery": recovered}), flush=True)
+        print(
+            json.dumps({"event": "ready", "room": args.room, "recovery": recovered}),
+            flush=True,
+        )
         while True:
             remaining = stop_deadline - time.monotonic() if stop_deadline else 8
             if remaining <= 0:
-                unresolved_shutdown = not ledger.drain_status(now=time.time())["complete"]
+                unresolved_shutdown = not ledger.drain_status(now=time.time())[
+                    "complete"
+                ]
                 break
             try:
                 await asyncio.wait_for(maintain(), min(8, remaining))
@@ -202,16 +359,25 @@ async def serve(args):
     finally:
         for task in tasks:
             task.cancel()
+
         async def cleanup():
             await asyncio.gather(*tasks, return_exceptions=True)
+            await asyncio.gather(
+                *(session.aclose() for session in speech_sessions.values()),
+                return_exceptions=True,
+            )
+            speech_sessions.clear()
             await room.disconnect()
             await source.aclose()
+
         try:
             await asyncio.wait_for(cleanup(), 3)
         except asyncio.TimeoutError:
             unresolved_shutdown = True
     if unresolved_shutdown:
-        raise RuntimeError("Shutdown deadline reached; unresolved calls remain recorded for reconciliation")
+        raise RuntimeError(
+            "Shutdown deadline reached; unresolved calls remain recorded for reconciliation"
+        )
 
 
 def arguments():
@@ -219,12 +385,35 @@ def arguments():
     parser.add_argument("--database", default=".runtime/calls.sqlite")
     parser.add_argument("--room", default="voiceops-local")
     parser.add_argument("--owner", default="local-team")
-    parser.add_argument("--capacity", type=int, default=1, choices=[1], help="The reference worker supports one call per private room")
+    parser.add_argument(
+        "--capacity",
+        type=int,
+        default=1,
+        choices=[1],
+        help="The reference worker supports one call per private room",
+    )
+    parser.add_argument(
+        "--speech-config",
+        help="Opt-in local speech configuration JSON; disables echo audio",
+    )
     parser.add_argument("--media-timeout", type=int, default=15, choices=range(5, 61))
-    parser.add_argument("--allow-test-faults", action="store_true", help="Allow SIGUSR1 to stop local audio output for failure tests")
-    parser.add_argument("--url", default=os.environ.get("LIVEKIT_URL", "http://127.0.0.1:18140"))
-    parser.add_argument("--api-key", default=os.environ.get("LIVEKIT_API_KEY", "devkey"))
-    parser.add_argument("--api-secret", default=os.environ.get("LIVEKIT_API_SECRET", "local-demo-secret-voice-operations-123456"))
+    parser.add_argument(
+        "--allow-test-faults",
+        action="store_true",
+        help="Allow SIGUSR1 to stop local audio output for failure tests",
+    )
+    parser.add_argument(
+        "--url", default=os.environ.get("LIVEKIT_URL", "http://127.0.0.1:18140")
+    )
+    parser.add_argument(
+        "--api-key", default=os.environ.get("LIVEKIT_API_KEY", "devkey")
+    )
+    parser.add_argument(
+        "--api-secret",
+        default=os.environ.get(
+            "LIVEKIT_API_SECRET", "local-demo-secret-voice-operations-123456"
+        ),
+    )
     return parser.parse_args()
 
 
