@@ -60,10 +60,7 @@ class WorkspaceTests(unittest.TestCase):
         self.playwright = sync_playwright().start()
         self.addCleanup(self.playwright.stop)
         self.browser = self.playwright.chromium.launch(
-            executable_path=os.environ.get(
-                "CHROMIUM_PATH",
-                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-            ),
+            executable_path=os.environ.get("CHROMIUM_PATH") or None,
             headless=True,
         )
         self.addCleanup(self.browser.close)

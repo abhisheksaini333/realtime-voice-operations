@@ -1,0 +1,32 @@
+name: Verify voice operations
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: '3.11.11'
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: '20.10.0'
+      - name: Install locked application and browser dependencies
+        run: python -m pip install -e . -r requirements-livekit.lock -r requirements-ui-test.txt
+      - name: Build and verify operator assets
+        run: npm --prefix frontend ci --ignore-scripts && npm --prefix frontend test && npm --prefix frontend run build
+      - name: Verify ledger controls privacy and recovery
+        run: python -m unittest discover -s tests -v
+      - name: Verify speech contracts without downloading models
+        run: python -m unittest discover -s tests/speech -v
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Verify operator viewer and uncertain-outcome UI contracts
+        env:
+          RUN_VOICE_UI_TESTS: '1'
+        run: python -m unittest discover -s frontend/tests -p test_workspace.py -v
+      - name: Check patch formatting
+        run: git diff --check
