@@ -52,7 +52,7 @@ func main() {
 		}
 	}
 	cli.SendDTMF("5")
-	emit(map[string]interface{}{"stage": "ready", "initial_audio": true})
+	emit(map[string]interface{}{"stage": "ready", "initial_audio": mode != "quiet"})
 	if mode == "finish" {
 		time.Sleep(2 * time.Second)
 		emit(map[string]interface{}{"stage": "complete", "outcome": "caller_hangup"})
@@ -122,7 +122,8 @@ func main() {
 			panic("original call ended after failed transfer")
 		case <-time.After(time.Second):
 		}
-		emit(map[string]interface{}{"stage": "complete", "outcome": mode, "original_audio": true, "original_bye": false, "elapsed_ms": time.Since(start).Milliseconds(), "refer_call_id": req.CallID().Value()})
+		sent, received := cli.SampleCounts()
+		emit(map[string]interface{}{"stage": "complete", "outcome": mode, "original_audio": true, "original_bye": false, "audio_sent": sent, "audio_received": received, "elapsed_ms": time.Since(start).Milliseconds(), "refer_call_id": req.CallID().Value()})
 	}
 	fmt.Fprintln(os.Stderr, "transfer fixture completed")
 }
