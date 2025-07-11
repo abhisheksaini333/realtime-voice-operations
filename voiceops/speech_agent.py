@@ -100,8 +100,9 @@ class IntakeStream(llm.LLMStream):
                 "category": intake["category"],
             },
         )
-        greeting = "Thanks" + (" " + intake["name"] if intake["name"] else "")
-        text = f"{greeting}. Your {intake['category']} request is ready for review."
+        greeting = "Thank you" + (" " + intake["name"] if intake["name"] else "")
+        article = "an" if intake["category"] in {"account", "other"} else "a"
+        text = f"{greeting}. This is {article} {intake['category']} request. It is ready for review."
         self._event_ch.send_nowait(
             llm.ChatChunk(
                 id=str(uuid.uuid4()),
