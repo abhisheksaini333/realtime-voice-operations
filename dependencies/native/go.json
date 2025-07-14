@@ -1,0 +1,11 @@
+{
+  "filename": "go1.24.2.darwin-arm64.tar.gz",
+  "os": "darwin",
+  "arch": "arm64",
+  "version": "go1.24.2",
+  "sha256": "b70f8b3c5b4ccb0ad4ffa5ee91cd38075df20fdbd953a1daedd47f50fbcff47a",
+  "size": 76241216,
+  "kind": "archive",
+  "url": "https://go.dev/dl/go1.24.2.darwin-arm64.tar.gz",
+  "checksum_source": "https://go.dev/dl/?mode=json&include=all"
+}

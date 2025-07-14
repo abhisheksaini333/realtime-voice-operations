@@ -1,0 +1,50 @@
+{
+  "images": [
+    {
+      "repository": "redis",
+      "digest": "sha256:121bac949fb5f623b9fa0b4e4c9fb358ffd045966e754cfa3eb9963f3af2fe3b",
+      "image_created": "2023-06-14T21:53:22.376961712Z",
+      "architecture": "arm64",
+      "os": "linux",
+      "image_id": "sha256:121bac949fb5f623b9fa0b4e4c9fb358ffd045966e754cfa3eb9963f3af2fe3b",
+      "reported_version_tag": "7.0.11-alpine",
+      "notes": "image_created is build metadata, not proof of registry publication date.",
+      "registry_source": "https://hub.docker.com/v2/repositories/library/redis/tags/7.0.11-alpine",
+      "registry_digest": "sha256:121bac949fb5f623b9fa0b4e4c9fb358ffd045966e754cfa3eb9963f3af2fe3b",
+      "registry_tag_matches": true
+    },
+    {
+      "repository": "livekit/livekit-server",
+      "digest": "sha256:621fd87bd64a0c83e1f2418ee0323eb920d00acdd73e5f79b303c64f6cc532af",
+      "image_created": "2025-03-02T06:08:27.578035713Z",
+      "architecture": "arm64",
+      "os": "linux",
+      "image_id": "sha256:621fd87bd64a0c83e1f2418ee0323eb920d00acdd73e5f79b303c64f6cc532af",
+      "reported_version_tag": "v1.8.4",
+      "notes": "image_created is build metadata, not proof of registry publication date.",
+      "registry_source": "https://hub.docker.com/v2/repositories/livekit/livekit-server/tags/v1.8.4",
+      "registry_digest": "sha256:621fd87bd64a0c83e1f2418ee0323eb920d00acdd73e5f79b303c64f6cc532af",
+      "registry_tag_matches": true
+    },
+    {
+      "repository": "andrius/asterisk",
+      "digest": "sha256:ee9e82e0a8ed2b3539cf9a473834361a7a422a6caa1e12112eaf0ee619a71f6e",
+      "image_created": "2024-05-07T19:09:54.55330967Z",
+      "architecture": "arm64",
+      "os": "linux",
+      "image_id": "sha256:ee9e82e0a8ed2b3539cf9a473834361a7a422a6caa1e12112eaf0ee619a71f6e",
+      "reported_version_tag": "alpine-3.19-20.5.2",
+      "notes": "image_created is build metadata, not proof of registry publication date.",
+      "registry_source": "https://hub.docker.com/v2/repositories/andrius/asterisk/tags/alpine-3.19-20.5.2",
+      "registry_matching_artifacts": [
+        {
+          "architecture": "arm64",
+          "digest": "sha256:ee9e82e0a8ed2b3539cf9a473834361a7a422a6caa1e12112eaf0ee619a71f6e",
+          "os": "linux",
+          "size": 18975468
+        }
+      ]
+    }
+  ],
+  "notes": "Pinned image digests identify the tested local Compose artifacts. Rebuilds and other architectures are not covered by these measurements."
+}

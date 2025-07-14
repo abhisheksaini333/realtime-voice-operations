@@ -1,0 +1,166 @@
+{
+  "cutoff": "2024-12-31",
+  "packages": [
+    {
+      "name": "mlx-lm",
+      "version": "0.18.1",
+      "filename": "mlx_lm-0.18.1-py3-none-any.whl",
+      "upload_time": "2024-08-30T12:57:09.811945Z",
+      "sha256": "38610e02c71067327833c570db7414cc0e604c24c4870377c84a55d5dc690f3d"
+    },
+    {
+      "name": "mlx",
+      "version": "0.18.1",
+      "filename": "mlx-0.18.1-cp311-cp311-macosx_14_0_arm64.whl",
+      "upload_time": "2024-10-10T20:10:27.907254Z",
+      "sha256": "023b90eaf54f65a7f118b7b81a5b5b6d5c8ceefa5ac009a0f6524355e4f1e6fb"
+    },
+    {
+      "name": "huggingface-hub",
+      "version": "0.24.7",
+      "filename": "huggingface_hub-0.24.7-py3-none-any.whl",
+      "upload_time": "2024-09-12T08:58:22.716863Z",
+      "sha256": "a212c555324c8a7b1ffdd07266bb7e7d69ca71aa238d27b7842d65e9a26ac3e5"
+    },
+    {
+      "name": "transformers",
+      "version": "4.44.2",
+      "filename": "transformers-4.44.2-py3-none-any.whl",
+      "upload_time": "2024-08-22T16:56:29.207126Z",
+      "sha256": "1c02c65e7bfa5e52a634aff3da52138b583fc6f263c1f28d547dc144ba3d412d"
+    },
+    {
+      "name": "fsspec",
+      "version": "2024.12.0",
+      "filename": "fsspec-2024.12.0-py3-none-any.whl",
+      "upload_time": "2024-12-19T19:57:28.258094Z",
+      "sha256": "b520aed47ad9804237ff878b504267a3b0b441e97508bd6d2d8774e3db85cee2"
+    },
+    {
+      "name": "numpy",
+      "version": "2.2.1",
+      "filename": "numpy-2.2.1-cp311-cp311-macosx_14_0_arm64.whl",
+      "upload_time": "2024-12-21T22:27:42.369484Z",
+      "sha256": "bc8a37ad5b22c08e2dbd27df2b3ef7e5c0864235805b1e718a235bcb200cf1cb"
+    },
+    {
+      "name": "packaging",
+      "version": "24.2",
+      "filename": "packaging-24.2-py3-none-any.whl",
+      "upload_time": "2024-11-08T09:47:44.722583Z",
+      "sha256": "09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.2",
+      "filename": "PyYAML-6.0.2-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-08-06T20:32:04.926548Z",
+      "sha256": "1e2120ef853f59c7419231f3bf4e7021f1b936f6ebd222406c3b60212205d2ee"
+    },
+    {
+      "name": "regex",
+      "version": "2024.11.6",
+      "filename": "regex-2024.11.6-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-11-06T20:09:35.504935Z",
+      "sha256": "94d87b689cdd831934fa3ce16cc15cd65748e6d689f5d2b8f4f4df2065c9fa20"
+    },
+    {
+      "name": "safetensors",
+      "version": "0.4.5",
+      "filename": "safetensors-0.4.5-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-09-05T13:46:40.256046Z",
+      "sha256": "bb07000b19d41e35eecef9a454f31a8b4718a185293f0d0b1c4b61d6e4487971"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.19.1",
+      "filename": "tokenizers-0.19.1-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-04-17T21:36:40.398056Z",
+      "sha256": "ddf672ed719b4ed82b51499100f5417d7d9f6fb05a65e232249268f35de5ed14"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.67.1",
+      "filename": "tqdm-4.67.1-py3-none-any.whl",
+      "upload_time": "2024-11-24T20:12:19.698181Z",
+      "sha256": "26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.12.2",
+      "filename": "typing_extensions-4.12.2-py3-none-any.whl",
+      "upload_time": "2024-06-07T18:52:13.582461Z",
+      "sha256": "04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d"
+    },
+    {
+      "name": "filelock",
+      "version": "3.16.1",
+      "filename": "filelock-3.16.1-py3-none-any.whl",
+      "upload_time": "2024-09-17T19:02:00.268583Z",
+      "sha256": "2082e5703d51fbf98ea75855d9d5527e33d8ff23099bec374a134febee6946b0"
+    },
+    {
+      "name": "Jinja2",
+      "version": "3.1.5",
+      "filename": "jinja2-3.1.5-py3-none-any.whl",
+      "upload_time": "2024-12-21T18:30:19.133079Z",
+      "sha256": "aba0f4dc9ed8013c424088f68a5c226f7d6097ed89b246d7749c2ec4175c6adb"
+    },
+    {
+      "name": "protobuf",
+      "version": "5.29.2",
+      "filename": "protobuf-5.29.2-cp38-abi3-macosx_10_9_universal2.whl",
+      "upload_time": "2024-12-18T15:30:56.007906Z",
+      "sha256": "a0c53d78383c851bfa97eb42e3703aefdc96d2036a41482ffd55dc5f529466eb"
+    },
+    {
+      "name": "requests",
+      "version": "2.32.3",
+      "filename": "requests-2.32.3-py3-none-any.whl",
+      "upload_time": "2024-05-29T15:37:47.027275Z",
+      "sha256": "70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"
+    },
+    {
+      "name": "certifi",
+      "version": "2024.12.14",
+      "filename": "certifi-2024.12.14-py3-none-any.whl",
+      "upload_time": "2024-12-14T13:52:36.114786Z",
+      "sha256": "1275f7a45be9464efc1173084eaa30f866fe2e47d389406136d332ed4967ec56"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.4.1",
+      "filename": "charset_normalizer-3.4.1-cp311-cp311-macosx_10_9_universal2.whl",
+      "upload_time": "2024-12-24T18:10:12.838245Z",
+      "sha256": "8bfa33f4f2672964266e940dd22a195989ba31669bd84629f05fab3ef4e2d125"
+    },
+    {
+      "name": "idna",
+      "version": "3.10",
+      "filename": "idna-3.10-py3-none-any.whl",
+      "upload_time": "2024-09-15T18:07:37.964349Z",
+      "sha256": "946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3"
+    },
+    {
+      "name": "MarkupSafe",
+      "version": "3.0.2",
+      "filename": "MarkupSafe-3.0.2-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-10-18T15:21:02.941952Z",
+      "sha256": "93335ca3812df2f366e80509ae119189886b0f3c2b81325d39efdb84a1e2ae93"
+    },
+    {
+      "name": "sentencepiece",
+      "version": "0.2.0",
+      "filename": "sentencepiece-0.2.0-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-02-19T17:06:09.292793Z",
+      "sha256": "7fd6071249c74f779c5b27183295b9202f8dedb68034e716784364443879eaa6"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.3.0",
+      "filename": "urllib3-2.3.0-py3-none-any.whl",
+      "upload_time": "2024-12-22T07:47:28.074156Z",
+      "sha256": "1cee9ad369867bfdbbb48b7dd50374c0967a0bb7710050facf0dd6911440e3df"
+    }
+  ]
+}

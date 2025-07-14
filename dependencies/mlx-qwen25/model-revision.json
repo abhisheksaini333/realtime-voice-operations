@@ -1,0 +1,18 @@
+{
+  "id": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+  "sha": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+  "lastModified": "2024-09-18T18:44:42.000Z",
+  "cardData": {
+    "base_model": "Qwen/Qwen2.5-1.5B",
+    "language": [
+      "en"
+    ],
+    "license": "apache-2.0",
+    "license_link": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/blob/main/LICENSE",
+    "pipeline_tag": "text-generation",
+    "tags": [
+      "chat",
+      "mlx"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "environment": {
+    "implementation_name": "cpython",
+    "implementation_version": "3.11.11",
+    "python_full_version": "3.11.11",
+    "python_version": "3.11",
+    "platform_machine": "arm64",
+    "platform_system": "Darwin"
+  },
+  "interpreter_artifact": "../native/python.json",
+  "profile": "CPython 3.11.11 with 23 exact package versions and audited CPython 3.11 wheels. Actual local transcript and worker verification is recorded separately; upload times describe artifact availability, not test execution."
+}

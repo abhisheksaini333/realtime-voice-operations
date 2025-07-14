@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/livekit/sip",
+  "revision": "368750a3d4e394e3058d1400aae8459d4eed7ede",
+  "source_archive": "https://codeload.github.com/livekit/sip/tar.gz/368750a3d4e394e3058d1400aae8459d4eed7ede",
+  "sha256": "b705c140d6eabb00e949daf5f98f91ffb0b2d1a2dffc8edad78ff1242d55dfc5",
+  "builder": "scripts/build_sip.py",
+  "go_version": "1.24.2",
+  "notes": [
+    "Source archive is verified before extraction and build.",
+    "fixtures/go.mod and fixtures/go.sum separately pin the SIP phone fixture module dependencies.",
+    "Fixture upstream license and attribution are retained in fixtures/sipphone/LICENSE and NOTICE."
+  ]
+}

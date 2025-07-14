@@ -1,0 +1,174 @@
+{
+  "cutoff": "2025-05-12",
+  "packages": [
+    {
+      "name": "mlx-lm",
+      "version": "0.24.0",
+      "filename": "mlx_lm-0.24.0-py3-none-any.whl",
+      "upload_time": "2025-04-28T13:44:54.442482Z",
+      "sha256": "5d74f71254666bacaaed7649961ede993ef062da0f29cd1003bb7a96f71d29c7"
+    },
+    {
+      "name": "mlx",
+      "version": "0.25.2",
+      "filename": "mlx-0.25.2-cp311-cp311-macosx_15_0_arm64.whl",
+      "upload_time": "2025-05-09T21:41:37.584499Z",
+      "sha256": "f3ef4e8e9a6adc43371f242445423147cce338d1b1368366b84f9dd74483a980"
+    },
+    {
+      "name": "transformers",
+      "version": "4.51.3",
+      "filename": "transformers-4.51.3-py3-none-any.whl",
+      "upload_time": "2025-04-14T08:13:43.023193Z",
+      "sha256": "fd3279633ceb2b777013234bbf0b4f5c2d23c4626b05497691f00cfda55e8a83"
+    },
+    {
+      "name": "numpy",
+      "version": "2.2.5",
+      "filename": "numpy-2.2.5-cp311-cp311-macosx_14_0_arm64.whl",
+      "upload_time": "2025-04-19T22:34:56.281855Z",
+      "sha256": "6411f744f7f20081b1b4e7112e0f4c9c5b08f94b9f086e6f0adf3645f85d3a4d"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.2",
+      "filename": "PyYAML-6.0.2-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-08-06T20:32:04.926548Z",
+      "sha256": "1e2120ef853f59c7419231f3bf4e7021f1b936f6ebd222406c3b60212205d2ee"
+    },
+    {
+      "name": "Jinja2",
+      "version": "3.1.6",
+      "filename": "jinja2-3.1.6-py3-none-any.whl",
+      "upload_time": "2025-03-05T20:05:00.369721Z",
+      "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"
+    },
+    {
+      "name": "protobuf",
+      "version": "6.30.2",
+      "filename": "protobuf-6.30.2-cp39-abi3-macosx_10_9_universal2.whl",
+      "upload_time": "2025-03-26T19:12:45.447461Z",
+      "sha256": "0eb523c550a66a09a0c20f86dd554afbf4d32b02af34ae53d93268c1f73bc65b"
+    },
+    {
+      "name": "huggingface-hub",
+      "version": "0.31.1",
+      "filename": "huggingface_hub-0.31.1-py3-none-any.whl",
+      "upload_time": "2025-05-07T15:25:17.921362Z",
+      "sha256": "43f73124819b48b42d140cbc0d7a2e6bd15b2853b1b9d728d4d55ad1750cac5b"
+    },
+    {
+      "name": "MarkupSafe",
+      "version": "3.0.2",
+      "filename": "MarkupSafe-3.0.2-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-10-18T15:21:02.941952Z",
+      "sha256": "93335ca3812df2f366e80509ae119189886b0f3c2b81325d39efdb84a1e2ae93"
+    },
+    {
+      "name": "packaging",
+      "version": "25.0",
+      "filename": "packaging-25.0-py3-none-any.whl",
+      "upload_time": "2025-04-19T11:48:57.875608Z",
+      "sha256": "29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484"
+    },
+    {
+      "name": "regex",
+      "version": "2024.11.6",
+      "filename": "regex-2024.11.6-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-11-06T20:09:35.504935Z",
+      "sha256": "94d87b689cdd831934fa3ce16cc15cd65748e6d689f5d2b8f4f4df2065c9fa20"
+    },
+    {
+      "name": "safetensors",
+      "version": "0.5.3",
+      "filename": "safetensors-0.5.3-cp38-abi3-macosx_11_0_arm64.whl",
+      "upload_time": "2025-02-26T09:15:01.765186Z",
+      "sha256": "21d01c14ff6c415c485616b8b0bf961c46b3b343ca59110d38d744e577f9cce7"
+    },
+    {
+      "name": "sentencepiece",
+      "version": "0.2.0",
+      "filename": "sentencepiece-0.2.0-cp311-cp311-macosx_11_0_arm64.whl",
+      "upload_time": "2024-02-19T17:06:09.292793Z",
+      "sha256": "7fd6071249c74f779c5b27183295b9202f8dedb68034e716784364443879eaa6"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.21.1",
+      "filename": "tokenizers-0.21.1-cp39-abi3-macosx_11_0_arm64.whl",
+      "upload_time": "2025-03-13T10:51:07.692078Z",
+      "sha256": "cd51cd0a91ecc801633829fcd1fda9cf8682ed3477c6243b9a095539de4aecf3"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.67.1",
+      "filename": "tqdm-4.67.1-py3-none-any.whl",
+      "upload_time": "2024-11-24T20:12:19.698181Z",
+      "sha256": "26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2"
+    },
+    {
+      "name": "filelock",
+      "version": "3.18.0",
+      "filename": "filelock-3.18.0-py3-none-any.whl",
+      "upload_time": "2025-03-14T07:11:39.145590Z",
+      "sha256": "c401f4f8377c4464e6db25fff06205fd89bdd83b65eb0488ed1b160f780e21de"
+    },
+    {
+      "name": "requests",
+      "version": "2.32.3",
+      "filename": "requests-2.32.3-py3-none-any.whl",
+      "upload_time": "2024-05-29T15:37:47.027275Z",
+      "sha256": "70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"
+    },
+    {
+      "name": "certifi",
+      "version": "2025.4.26",
+      "filename": "certifi-2025.4.26-py3-none-any.whl",
+      "upload_time": "2025-04-26T02:12:27.662298Z",
+      "sha256": "30350364dfe371162649852c63336a15c70c6510c2ad5015b21c2345311805f3"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.4.2",
+      "filename": "charset_normalizer-3.4.2-cp311-cp311-macosx_10_9_universal2.whl",
+      "upload_time": "2025-05-02T08:32:11.945823Z",
+      "sha256": "be1e352acbe3c78727a16a455126d9ff83ea2dfdcbc83148d2982305a04714c2"
+    },
+    {
+      "name": "fsspec",
+      "version": "2025.3.2",
+      "filename": "fsspec-2025.3.2-py3-none-any.whl",
+      "upload_time": "2025-03-31T15:27:07.028677Z",
+      "sha256": "2daf8dc3d1dfa65b6aa37748d112773a7a08416f6c70d96b264c96476ecaf711"
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.1.1",
+      "filename": "hf_xet-1.1.1-cp37-abi3-macosx_11_0_arm64.whl",
+      "upload_time": "2025-05-12T21:34:16.912336Z",
+      "sha256": "c60cd67be384cb9e592fa6dfd29a10fddffa1feb2f3b31f53e980630d1ca0fd6"
+    },
+    {
+      "name": "idna",
+      "version": "3.10",
+      "filename": "idna-3.10-py3-none-any.whl",
+      "upload_time": "2024-09-15T18:07:37.964349Z",
+      "sha256": "946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.13.2",
+      "filename": "typing_extensions-4.13.2-py3-none-any.whl",
+      "upload_time": "2025-04-10T14:19:03.967482Z",
+      "sha256": "a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.4.0",
+      "filename": "urllib3-2.4.0-py3-none-any.whl",
+      "upload_time": "2025-04-10T15:23:37.377011Z",
+      "sha256": "4e16665048960a0900c702d4a66415956a584919c03361cac9f1df5c5dd7e813"
+    }
+  ],
+  "max_upload": "2025-05-12T21:34:16.912336Z"
+}

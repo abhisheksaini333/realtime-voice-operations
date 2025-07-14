@@ -1,0 +1,7 @@
+{
+  "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20241206/cpython-3.11.11%2B20241206-aarch64-apple-darwin-install_only_stripped.tar.gz",
+  "release": "20241206",
+  "sha256": "ddd8fc255df97dd8b902927d284205346f929afa74d58f0ffe1ffd35b3543514",
+  "upstream_checksum_verified": true,
+  "version": "Python 3.11.11"
+}

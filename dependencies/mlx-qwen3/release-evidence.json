@@ -1,0 +1,368 @@
+{
+  "cutoff": "2025-05-12",
+  "requirements": [
+    "mlx-lm==0.24.0"
+  ],
+  "packages": [
+    {
+      "name": "mlx-lm",
+      "version": "0.24.0",
+      "first_upload": "2025-04-28T13:44:54.442482Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/26/d0/17e673c0ef82a888ae4755fd2854df2b324af31607e07896b6134fc18d5a/mlx_lm-0.24.0-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=5d74f71254666bacaaed7649961ede993ef062da0f29cd1003bb7a96f71d29c7",
+          "hashes": {
+            "sha256": "5d74f71254666bacaaed7649961ede993ef062da0f29cd1003bb7a96f71d29c7"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/mlx-lm/0.24.0/json"
+    },
+    {
+      "name": "mlx",
+      "version": "0.25.2",
+      "first_upload": "2025-05-09T21:40:06.616352Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/a1/e6/7b426a43ac4fc6a84ab0ee696db118fb69dde60080f2b9afbce0466d03ae/mlx-0.25.2-cp311-cp311-macosx_15_0_arm64.whl",
+        "archive_info": {
+          "hash": "sha256=f3ef4e8e9a6adc43371f242445423147cce338d1b1368366b84f9dd74483a980",
+          "hashes": {
+            "sha256": "f3ef4e8e9a6adc43371f242445423147cce338d1b1368366b84f9dd74483a980"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/mlx/0.25.2/json"
+    },
+    {
+      "name": "transformers",
+      "version": "4.51.3",
+      "first_upload": "2025-04-14T08:13:43.023193Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/a9/b6/5257d04ae327b44db31f15cce39e6020cc986333c715660b1315a9724d82/transformers-4.51.3-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=fd3279633ceb2b777013234bbf0b4f5c2d23c4626b05497691f00cfda55e8a83",
+          "hashes": {
+            "sha256": "fd3279633ceb2b777013234bbf0b4f5c2d23c4626b05497691f00cfda55e8a83"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/transformers/4.51.3/json"
+    },
+    {
+      "name": "numpy",
+      "version": "2.2.5",
+      "first_upload": "2025-04-19T22:31:01.142106Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/0e/65/937cdf238ef6ac54ff749c0f66d9ee2b03646034c205cea9b6c51f2f3ad1/numpy-2.2.5-cp311-cp311-macosx_14_0_arm64.whl",
+        "archive_info": {
+          "hash": "sha256=6411f744f7f20081b1b4e7112e0f4c9c5b08f94b9f086e6f0adf3645f85d3a4d",
+          "hashes": {
+            "sha256": "6411f744f7f20081b1b4e7112e0f4c9c5b08f94b9f086e6f0adf3645f85d3a4d"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/numpy/2.2.5/json"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.2",
+      "first_upload": "2024-08-06T20:31:40.178426Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/8b/62/b9faa998fd185f65c1371643678e4d58254add437edb764a08c5a98fb986/PyYAML-6.0.2-cp311-cp311-macosx_11_0_arm64.whl",
+        "archive_info": {
+          "hash": "sha256=1e2120ef853f59c7419231f3bf4e7021f1b936f6ebd222406c3b60212205d2ee",
+          "hashes": {
+            "sha256": "1e2120ef853f59c7419231f3bf4e7021f1b936f6ebd222406c3b60212205d2ee"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/PyYAML/6.0.2/json"
+    },
+    {
+      "name": "Jinja2",
+      "version": "3.1.6",
+      "first_upload": "2025-03-05T20:05:00.369721Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+          "hashes": {
+            "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/Jinja2/3.1.6/json"
+    },
+    {
+      "name": "protobuf",
+      "version": "6.30.2",
+      "first_upload": "2025-03-26T19:12:41.359864Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/8e/66/7f3b121f59097c93267e7f497f10e52ced7161b38295137a12a266b6c149/protobuf-6.30.2-cp39-abi3-macosx_10_9_universal2.whl",
+        "archive_info": {
+          "hash": "sha256=0eb523c550a66a09a0c20f86dd554afbf4d32b02af34ae53d93268c1f73bc65b",
+          "hashes": {
+            "sha256": "0eb523c550a66a09a0c20f86dd554afbf4d32b02af34ae53d93268c1f73bc65b"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/protobuf/6.30.2/json"
+    },
+    {
+      "name": "huggingface-hub",
+      "version": "0.31.1",
+      "first_upload": "2025-05-07T15:25:17.921362Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/3a/bf/6002da17ec1c7a47bedeb216812929665927c70b6e7500b3c7bf36f01bdd/huggingface_hub-0.31.1-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=43f73124819b48b42d140cbc0d7a2e6bd15b2853b1b9d728d4d55ad1750cac5b",
+          "hashes": {
+            "sha256": "43f73124819b48b42d140cbc0d7a2e6bd15b2853b1b9d728d4d55ad1750cac5b"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/huggingface-hub/0.31.1/json"
+    },
+    {
+      "name": "MarkupSafe",
+      "version": "3.0.2",
+      "first_upload": "2024-10-18T15:20:51.440812Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/6c/30/316d194b093cde57d448a4c3209f22e3046c5bb2fb0820b118292b334be7/MarkupSafe-3.0.2-cp311-cp311-macosx_11_0_arm64.whl",
+        "archive_info": {
+          "hash": "sha256=93335ca3812df2f366e80509ae119189886b0f3c2b81325d39efdb84a1e2ae93",
+          "hashes": {
+            "sha256": "93335ca3812df2f366e80509ae119189886b0f3c2b81325d39efdb84a1e2ae93"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/MarkupSafe/3.0.2/json"
+    },
+    {
+      "name": "packaging",
+      "version": "25.0",
+      "first_upload": "2025-04-19T11:48:57.875608Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484",
+          "hashes": {
+            "sha256": "29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/packaging/25.0/json"
+    },
+    {
+      "name": "regex",
+      "version": "2024.11.6",
+      "first_upload": "2024-11-06T20:08:57.575371Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/c5/1b/f0e4d13e6adf866ce9b069e191f303a30ab1277e037037a365c3aad5cc9c/regex-2024.11.6-cp311-cp311-macosx_11_0_arm64.whl",
+        "archive_info": {
+          "hash": "sha256=94d87b689cdd831934fa3ce16cc15cd65748e6d689f5d2b8f4f4df2065c9fa20",
+          "hashes": {
+            "sha256": "94d87b689cdd831934fa3ce16cc15cd65748e6d689f5d2b8f4f4df2065c9fa20"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/regex/2024.11.6/json"
+    },
+    {
+      "name": "safetensors",
+      "version": "0.5.3",
+      "first_upload": "2025-02-26T09:14:51.812757Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/b8/3b/11f1b4a2f5d2ab7da34ecc062b0bc301f2be024d110a6466726bec8c055c/safetensors-0.5.3-cp38-abi3-macosx_11_0_arm64.whl",
+        "archive_info": {
+          "hash": "sha256=21d01c14ff6c415c485616b8b0bf961c46b3b343ca59110d38d744e577f9cce7",
+          "hashes": {
+            "sha256": "21d01c14ff6c415c485616b8b0bf961c46b3b343ca59110d38d744e577f9cce7"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/safetensors/0.5.3/json"
+    },
+    {
+      "name": "sentencepiece",
+      "version": "0.2.0",
+      "first_upload": "2024-02-19T17:03:42.876797Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/de/42/ae30952c4a0bd773e90c9bf2579f5533037c886dfc8ec68133d5694f4dd2/sentencepiece-0.2.0-cp311-cp311-macosx_11_0_arm64.whl",
+        "archive_info": {
+          "hash": "sha256=7fd6071249c74f779c5b27183295b9202f8dedb68034e716784364443879eaa6",
+          "hashes": {
+            "sha256": "7fd6071249c74f779c5b27183295b9202f8dedb68034e716784364443879eaa6"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/sentencepiece/0.2.0/json"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.21.1",
+      "first_upload": "2025-03-13T10:50:56.679434Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/ae/1a/4526797f3719b0287853f12c5ad563a9be09d446c44ac784cdd7c50f76ab/tokenizers-0.21.1-cp39-abi3-macosx_11_0_arm64.whl",
+        "archive_info": {
+          "hash": "sha256=cd51cd0a91ecc801633829fcd1fda9cf8682ed3477c6243b9a095539de4aecf3",
+          "hashes": {
+            "sha256": "cd51cd0a91ecc801633829fcd1fda9cf8682ed3477c6243b9a095539de4aecf3"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/tokenizers/0.21.1/json"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.67.1",
+      "first_upload": "2024-11-24T20:12:19.698181Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2",
+          "hashes": {
+            "sha256": "26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/tqdm/4.67.1/json"
+    },
+    {
+      "name": "filelock",
+      "version": "3.18.0",
+      "first_upload": "2025-03-14T07:11:39.145590Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/4d/36/2a115987e2d8c300a974597416d9de88f2444426de9571f4b59b2cca3acc/filelock-3.18.0-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=c401f4f8377c4464e6db25fff06205fd89bdd83b65eb0488ed1b160f780e21de",
+          "hashes": {
+            "sha256": "c401f4f8377c4464e6db25fff06205fd89bdd83b65eb0488ed1b160f780e21de"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/filelock/3.18.0/json"
+    },
+    {
+      "name": "requests",
+      "version": "2.32.3",
+      "first_upload": "2024-05-29T15:37:47.027275Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/f9/9b/335f9764261e915ed497fcdeb11df5dfd6f7bf257d4a6a2a686d80da4d54/requests-2.32.3-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6",
+          "hashes": {
+            "sha256": "70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/requests/2.32.3/json"
+    },
+    {
+      "name": "certifi",
+      "version": "2025.4.26",
+      "first_upload": "2025-04-26T02:12:27.662298Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/4a/7e/3db2bd1b1f9e95f7cddca6d6e75e2f2bd9f51b1246e546d88addca0106bd/certifi-2025.4.26-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=30350364dfe371162649852c63336a15c70c6510c2ad5015b21c2345311805f3",
+          "hashes": {
+            "sha256": "30350364dfe371162649852c63336a15c70c6510c2ad5015b21c2345311805f3"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/certifi/2025.4.26/json"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.4.2",
+      "first_upload": "2025-05-02T08:31:46.725388Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/05/85/4c40d00dcc6284a1c1ad5de5e0996b06f39d8232f1031cd23c2f5c07ee86/charset_normalizer-3.4.2-cp311-cp311-macosx_10_9_universal2.whl",
+        "archive_info": {
+          "hash": "sha256=be1e352acbe3c78727a16a455126d9ff83ea2dfdcbc83148d2982305a04714c2",
+          "hashes": {
+            "sha256": "be1e352acbe3c78727a16a455126d9ff83ea2dfdcbc83148d2982305a04714c2"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/charset-normalizer/3.4.2/json"
+    },
+    {
+      "name": "fsspec",
+      "version": "2025.3.2",
+      "first_upload": "2025-03-31T15:27:07.028677Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/44/4b/e0cfc1a6f17e990f3e64b7d941ddc4acdc7b19d6edd51abf495f32b1a9e4/fsspec-2025.3.2-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=2daf8dc3d1dfa65b6aa37748d112773a7a08416f6c70d96b264c96476ecaf711",
+          "hashes": {
+            "sha256": "2daf8dc3d1dfa65b6aa37748d112773a7a08416f6c70d96b264c96476ecaf711"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/fsspec/2025.3.2/json"
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.1.1",
+      "first_upload": "2025-05-12T21:34:11.974614Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/55/3c/36342b3fa247f2580821a4b183d38f36fb20e911a8307df625790e734359/hf_xet-1.1.1-cp37-abi3-macosx_11_0_arm64.whl",
+        "archive_info": {
+          "hash": "sha256=c60cd67be384cb9e592fa6dfd29a10fddffa1feb2f3b31f53e980630d1ca0fd6",
+          "hashes": {
+            "sha256": "c60cd67be384cb9e592fa6dfd29a10fddffa1feb2f3b31f53e980630d1ca0fd6"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/hf-xet/1.1.1/json"
+    },
+    {
+      "name": "idna",
+      "version": "3.10",
+      "first_upload": "2024-09-15T18:07:37.964349Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3",
+          "hashes": {
+            "sha256": "946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/idna/3.10/json"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.13.2",
+      "first_upload": "2025-04-10T14:19:03.967482Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/8b/54/b1ae86c0973cc6f0210b53d508ca3641fb6d0c56823f288d108bc7ab3cc8/typing_extensions-4.13.2-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c",
+          "hashes": {
+            "sha256": "a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/typing_extensions/4.13.2/json"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.4.0",
+      "first_upload": "2025-04-10T15:23:37.377011Z",
+      "selected_artifact": {
+        "url": "https://files.pythonhosted.org/packages/6b/11/cc635220681e93a0183390e26485430ca2c7b5f9d33b15c74c2861cb8091/urllib3-2.4.0-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=4e16665048960a0900c702d4a66415956a584919c03361cac9f1df5c5dd7e813",
+          "hashes": {
+            "sha256": "4e16665048960a0900c702d4a66415956a584919c03361cac9f1df5c5dd7e813"
+          }
+        }
+      },
+      "source": "https://pypi.org/pypi/urllib3/2.4.0/json"
+    }
+  ]
+}
