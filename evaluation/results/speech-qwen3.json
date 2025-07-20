@@ -1,0 +1,51 @@
+{
+  "status": "passed",
+  "fixture": "synthetic local SIP caller",
+  "sdk": "livekit-agents1.0.0",
+  "profile": "http://127.0.0.1:18101/v1/chat/completions",
+  "call_id": "SCL_ws7eih9bVLMb",
+  "dialog_id": "757f845a-50fb-4b71-ade8-d01c7660a5ce",
+  "transcripts": [
+    {
+      "speaker": "caller",
+      "text": "My name is John. I cannot log into my account."
+    },
+    {
+      "speaker": "agent",
+      "text": "Thank you John. This is an account request. It is ready for review."
+    }
+  ],
+  "returned_audio_transcription": "Thank you, John. This is an account request. It is ready for review.",
+  "returned_audio_samples": 93048,
+  "turn_elapsed_ms": 17672,
+  "observations": [
+    {
+      "stage": "stt",
+      "latency_ms": 4703,
+      "audio_ms": 4610
+    },
+    {
+      "stage": "llm",
+      "latency_ms": 2721,
+      "category": "account"
+    },
+    {
+      "stage": "tts",
+      "latency_ms": 87,
+      "audio_ms": 3280
+    },
+    {
+      "stage": "tts",
+      "latency_ms": 38,
+      "audio_ms": 1645
+    },
+    {
+      "stage": "rtc_output",
+      "samples_8khz": 39418
+    },
+    {
+      "stage": "reply_complete"
+    }
+  ],
+  "whisper_runtime": "Python3.11.11 / Torch2.3.0 / Transformers4.41.2"
+}

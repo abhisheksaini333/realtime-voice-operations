@@ -1,0 +1,113 @@
+{
+  "scope": "Owned local SIP fixtures; automated PBX endpoint; application media observations",
+  "registration": {
+    "wrong_password": 401,
+    "registered": 200,
+    "removed": 200,
+    "dialog_id": "1ec824f1-d00a-46c0-844f-feb5cece1633",
+    "registrar": "asterisk",
+    "account": "1002"
+  },
+  "transfers": [
+    {
+      "phone": {
+        "audio_received": 8800,
+        "audio_sent": 8640,
+        "elapsed_ms": 1120,
+        "original_bye": true,
+        "outcome": "connected",
+        "refer_call_id": "008c7388-3ef8-4bf5-8395-dec1cddb6321",
+        "second_answered": true,
+        "second_audio": true,
+        "second_dialog_id": "f05bc220-e21b-4c8c-8e9b-a45fa842a30d",
+        "stage": "complete"
+      },
+      "observed_operation_state": "connected",
+      "dispatch_response_state": "dispatched"
+    },
+    {
+      "phone": {
+        "audio_received": 24800,
+        "audio_sent": 16640,
+        "elapsed_ms": 1020,
+        "original_audio": true,
+        "original_bye": false,
+        "outcome": "reject",
+        "refer_call_id": "233ed4a2-97d8-4304-9c3a-4f6c02832bef",
+        "stage": "complete"
+      },
+      "observed_operation_state": "rejected",
+      "dispatch_response_state": "outcome_unknown"
+    },
+    {
+      "phone": {
+        "audio_received": 48640,
+        "audio_sent": 40480,
+        "elapsed_ms": 4023,
+        "original_audio": true,
+        "original_bye": false,
+        "outcome": "unanswered",
+        "refer_call_id": "fda20fbd-7b44-418b-b40f-e41c0608e90d",
+        "stage": "complete"
+      },
+      "observed_operation_state": "unanswered",
+      "dispatch_response_state": "outcome_unknown"
+    }
+  ],
+  "worker_recovery": [
+    {
+      "scenario": "natural-drain",
+      "elapsed_ms": 2003,
+      "final_status": "ended",
+      "phone": {
+        "outcome": "caller_hangup",
+        "stage": "complete"
+      }
+    },
+    {
+      "scenario": "deadline-drain",
+      "elapsed_ms": 10109,
+      "final_status": "ended",
+      "phone": {
+        "bye": true,
+        "outcome": "remote_hangup",
+        "stage": "complete"
+      }
+    },
+    {
+      "scenario": "restart",
+      "elapsed_ms": 2290,
+      "final_status": "ended",
+      "phone": {
+        "bye": true,
+        "outcome": "remote_hangup",
+        "stage": "complete"
+      }
+    },
+    {
+      "scenario": "media-timeout",
+      "elapsed_ms": 5125,
+      "final_status": "ended",
+      "phone": {
+        "bye": true,
+        "outcome": "remote_hangup",
+        "stage": "complete"
+      }
+    }
+  ],
+  "control_outage": {
+    "bounded_unresolved_shutdown_seconds": 23.303,
+    "before_recovery": "answered",
+    "after_recovery": "ended",
+    "phone": {
+      "bye": true,
+      "outcome": "remote_hangup",
+      "stage": "complete"
+    }
+  },
+  "repeated_identity": {
+    "calls": 2,
+    "distinct_call_ids": true,
+    "both_ended": true
+  }
+}

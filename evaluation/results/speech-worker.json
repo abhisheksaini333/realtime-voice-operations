@@ -1,0 +1,122 @@
+{
+  "status": "passed",
+  "scope": "two synthetic local SIP calls through the actual worker",
+  "calls": [
+    {
+      "case": "no-consent",
+      "call_id": "6e13bb298316480c9237df75290bc575",
+      "status": "ended",
+      "retained_transcripts": 0,
+      "received_samples": 159600,
+      "rtc_accepted_samples_8khz": 39418,
+      "remote_recording_transcription": "Thank you, John. This is an account request. It is ready for a new...",
+      "elapsed_ms": 24709,
+      "stage_events": [
+        {
+          "kind": "speech_session_started",
+          "data": {
+            "turn_control": "dtmf",
+            "outbound_policy": "intermittent"
+          }
+        },
+        {
+          "kind": "speech_stt",
+          "data": {
+            "latency_ms": 8023,
+            "audio_ms": 4180
+          }
+        },
+        {
+          "kind": "speech_llm",
+          "data": {
+            "latency_ms": 1542,
+            "category": "account"
+          }
+        },
+        {
+          "kind": "speech_tts",
+          "data": {
+            "latency_ms": 54,
+            "audio_ms": 3280
+          }
+        },
+        {
+          "kind": "speech_tts",
+          "data": {
+            "latency_ms": 26,
+            "audio_ms": 1645
+          }
+        },
+        {
+          "kind": "speech_rtc_output",
+          "data": {
+            "samples_8khz": 39418
+          }
+        },
+        {
+          "kind": "speech_reply_complete",
+          "data": {}
+        }
+      ]
+    },
+    {
+      "case": "consented",
+      "call_id": "ee24309d4c874be2830420b5e8b18a3a",
+      "status": "ended",
+      "retained_transcripts": 2,
+      "received_samples": 120720,
+      "rtc_accepted_samples_8khz": 39418,
+      "remote_recording_transcription": "Thank you, John. This is an account request. It is ready for review.",
+      "elapsed_ms": 18230,
+      "stage_events": [
+        {
+          "kind": "speech_session_started",
+          "data": {
+            "turn_control": "dtmf",
+            "outbound_policy": "intermittent"
+          }
+        },
+        {
+          "kind": "speech_stt",
+          "data": {
+            "latency_ms": 3910,
+            "audio_ms": 4140
+          }
+        },
+        {
+          "kind": "speech_llm",
+          "data": {
+            "latency_ms": 635,
+            "category": "account"
+          }
+        },
+        {
+          "kind": "speech_tts",
+          "data": {
+            "latency_ms": 50,
+            "audio_ms": 3280
+          }
+        },
+        {
+          "kind": "speech_tts",
+          "data": {
+            "latency_ms": 51,
+            "audio_ms": 1645
+          }
+        },
+        {
+          "kind": "speech_rtc_output",
+          "data": {
+            "samples_8khz": 39418
+          }
+        },
+        {
+          "kind": "speech_reply_complete",
+          "data": {}
+        }
+      ]
+    }
+  ],
+  "clean_shutdown": true,
+  "whisper_runtime": "Python3.11.11 / Torch2.3.0 / Transformers4.41.2"
+}

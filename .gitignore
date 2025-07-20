@@ -11,3 +11,5 @@ evidence/
 .DS_Store
 .runtime/
 fixtures/call
+fixtures/speech
+backups/
