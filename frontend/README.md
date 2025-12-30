@@ -14,7 +14,9 @@ The workspace polls observed calls and media every three seconds. Operators can 
 
 Consent toggles require an attestation. Recording playback fetches authenticated audio into a temporary object URL, which is revoked when changing calls, withdrawing the recording preference, or locking. The console has no transcription model: it displays transcript entries actually retained by the configured service. Viewer sessions cannot access write controls or audio, and only administrators see service admission controls.
 
-The dependency lock reuses the audited React 18.3.1 / Vite 5.4.11 profile, with transitive versions published before January 2025. Vite is used to build static assets only. These compatibility dependencies retain known historical advisories; do not expose a Vite development server or claim a patched production profile from this lock.
+The static build uses React 18.3.1 and esbuild 0.27.2, published December 17, 2025. Node 20+ is sufficient. The [esbuild build and watch APIs](https://esbuild.github.io/api/) produce the script, stylesheet and HTML assets; the Python API remains the only HTTP server. `npm run dev` watches local sources and rebuilds files without opening a network listener.
+
+Every locked package, including platform-specific esbuild binaries, has a registry publication date and integrity value in [dependency provenance](dependency-provenance.json). The final npm audit reported zero known advisories for this dependency graph. Rerun `npm audit` as advisories change; a clean audit is not a general security certification.
 
 `tests/model.test.mjs` exercises stale and expired approvals, session roles and terminal call controls. Full browser verification additionally needs the running API and an answered local SIP fixture; the implementation evidence records actual transfer, media and responsive-layout checks separately from unit tests.
 

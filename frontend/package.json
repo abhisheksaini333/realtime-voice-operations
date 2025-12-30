@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite build --watch",
-    "build": "vite build",
+    "dev": "node build.mjs --watch",
+    "build": "node build.mjs",
     "test": "node --test tests/model.test.mjs"
   },
   "dependencies": {
@@ -13,11 +13,9 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "vite": "5.4.11"
+    "esbuild": "0.27.2"
   },
-  "overrides": {
-    "rollup": "4.29.1",
-    "postcss": "8.4.49",
-    "nanoid": "3.3.8"
+  "engines": {
+    "node": ">=20"
   }
 }
