@@ -37,3 +37,18 @@ class RegistryTests(unittest.TestCase):
             ledger.transition(call_id, "owner", "ended", version=1, now=101)
             with self.assertRaises(InvalidCall):
                 registry.admit(participant, now=102)
+
+    def test_rejected_disconnect_preserves_session_for_a_valid_retry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ledger = CallLedger(Path(directory) / "calls.sqlite", max_active_calls=1)
+            registry = CallRegistry(ledger, "owner", "room")
+            participant = SimpleNamespace(identity="sip_1", sid="PA_one", attributes={"sip.callID": "SCL_one", "sip.phoneNumber": "1001"})
+            call_id = registry.admit(participant, now=100)
+            with self.assertRaises(InvalidCall):
+                registry.disconnect(participant, now=99)
+            self.assertTrue(registry.matches(participant))
+            self.assertEqual(registry.calls[participant.identity], call_id)
+            self.assertEqual(ledger.get(call_id, "owner")["status"], "admitted")
+            self.assertEqual(registry.disconnect(participant, now=101), call_id)
+            self.assertFalse(registry.matches(participant))
+            self.assertEqual(ledger.get(call_id, "owner")["status"], "ended")

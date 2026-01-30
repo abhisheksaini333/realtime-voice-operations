@@ -39,9 +39,10 @@ class CallRegistry:
         identity = participant.identity
         if self.sessions.get(identity) != participant.sid:
             return None
-        call_id = self.calls.pop(identity)
-        self.sessions.pop(identity)
+        call_id = self.calls[identity]
         call = self.ledger.get(call_id, self.owner)
         if call["status"] not in {"ended", "failed", "transferred"}:
             self.ledger.transition(call_id, self.owner, "ended", now=now, version=call["version"])
+        self.calls.pop(identity)
+        self.sessions.pop(identity)
         return call_id
