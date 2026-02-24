@@ -78,3 +78,14 @@ class ObservationTests(unittest.TestCase):
             self.observations.health(
                 self.call["id"], "team-a", now=121, outbound_policy="disabled"
             )
+
+    def test_health_rejects_invalid_timeouts_and_clocks_before_observations(self):
+        for timeout in (True, "10", None, float("inf"), float("nan"), 0):
+            with self.subTest(timeout=timeout), self.assertRaises(InvalidCall):
+                self.observations.health(self.call["id"], "team-a", now=101, timeout=timeout)
+        with self.assertRaises(InvalidCall):
+            self.observations.health(self.call["id"], "team-a", now=99)
+        self.observations.media(self.call["id"], "team-a", received=160, sent=160, now=110)
+        with self.assertRaises(InvalidCall):
+            self.observations.health(self.call["id"], "team-a", now=109)
+        self.assertFalse(self.observations.health(self.call["id"], "team-a", now=110, timeout=1.5)["stale"])

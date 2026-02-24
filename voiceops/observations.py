@@ -50,7 +50,7 @@ class Observations:
         now = timestamp(now)
         if outbound_policy not in {"continuous", "intermittent"}:
             raise InvalidCall("Invalid outbound media policy")
-        if not 1 <= timeout <= 300:
+        if type(timeout) not in (int, float) or not 1 <= timeout <= 300:
             raise InvalidCall("Invalid media timeout")
         with self.ledger.connection() as db:
             call = self.ledger._owned(db, call_id, owner)
@@ -67,6 +67,8 @@ class Observations:
                     "last_sent": None,
                 }
             )
+        if now < max(call["updated_at"], result.get("observed_at", call["created_at"])):
+            raise InvalidCall("Health clock predates call observations")
         result["outbound_policy"] = outbound_policy
         monitored = (
             ("last_received", "last_sent")
