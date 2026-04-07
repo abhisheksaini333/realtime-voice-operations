@@ -89,3 +89,17 @@ class ObservationTests(unittest.TestCase):
         with self.assertRaises(InvalidCall):
             self.observations.health(self.call["id"], "team-a", now=109)
         self.assertFalse(self.observations.health(self.call["id"], "team-a", now=110, timeout=1.5)["stale"])
+
+    def test_stale_dtmf_cannot_reorder_call_history(self):
+        self.ledger.transition(self.call["id"], "team-a", "answered", now=110, version=1)
+        before = self.ledger.events(self.call["id"], "team-a")
+        with self.assertRaises(InvalidCall):
+            self.observations.dtmf(self.call["id"], "team-a", "sip-1", "5", now=109)
+        self.assertEqual(self.ledger.events(self.call["id"], "team-a"), before)
+        self.observations.dtmf(self.call["id"], "team-a", "sip-1", "5", now=120)
+        before = self.ledger.events(self.call["id"], "team-a")
+        with self.assertRaises(InvalidCall):
+            self.observations.dtmf(self.call["id"], "team-a", "sip-1", "6", now=119)
+        self.assertEqual(self.ledger.events(self.call["id"], "team-a"), before)
+        self.observations.dtmf(self.call["id"], "team-a", "sip-1", "7", now=120)
+        self.assertEqual(self.ledger.events(self.call["id"], "team-a")[-1]["data"]["digit"], "7")

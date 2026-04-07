@@ -94,6 +94,11 @@ class Observations:
             call = self.ledger._owned(db, call_id, owner)
             if participant != call["participant"]:
                 raise InvalidCall("DTMF participant does not match call")
+            previous = db.execute(
+                "SELECT max(observed_at) FROM events WHERE call_id=? AND kind='dtmf_received'", (call_id,)
+            ).fetchone()[0]
+            if now < max(call["updated_at"], previous if previous is not None else call["created_at"]):
+                raise InvalidCall("DTMF observation is stale")
             self.ledger._event(
                 db,
                 call_id,
