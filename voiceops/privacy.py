@@ -38,9 +38,9 @@ class PrivacyStore:
         if not isinstance(attestation, str) or not 8 <= len(attestation.strip()) <= 256:
             raise InvalidCall("A bounded consent attestation is required")
         with self.ledger.transaction() as db:
-            self.ledger._owned(db, call_id, owner)
+            call = self.ledger._owned(db, call_id, owner)
             prior = db.execute("SELECT observed_at FROM consent WHERE call_id=?", (call_id,)).fetchone()
-            if prior and now < prior[0]:
+            if now < max(call["created_at"], prior[0] if prior else call["created_at"]):
                 raise InvalidCall("Consent observation is stale")
             db.execute("INSERT INTO consent(call_id,transcript,recording,attestation,observed_at,revision) "
                        "VALUES(?,?,?,?,?,1) ON CONFLICT(call_id) DO UPDATE SET "

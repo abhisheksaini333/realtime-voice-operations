@@ -99,3 +99,12 @@ class PrivacyTests(unittest.TestCase):
         self.assertEqual(migrated["attestation"], "existing fixture consent")
         self.assertEqual((migrated["transcript"], migrated["recording"]), (1, 1))
         self.assertIn("revision", migrated)
+
+    def test_initial_consent_cannot_predate_call_admission(self):
+        before = self.ledger.events(self.call["id"], "team-a")
+        with self.assertRaises(InvalidCall):
+            self.store.consent(self.call["id"], "team-a", transcript=True, recording=True, attestation="owned fixture consent", now=99)
+        self.assertEqual(self.store.settings(self.call["id"], "team-a")["revision"], 0)
+        self.assertEqual(self.ledger.events(self.call["id"], "team-a"), before)
+        consent = self.store.consent(self.call["id"], "team-a", transcript=True, recording=True, attestation="owned fixture consent", now=100)
+        self.assertEqual(consent["revision"], 1)
