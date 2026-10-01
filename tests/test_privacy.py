@@ -108,3 +108,14 @@ class PrivacyTests(unittest.TestCase):
         self.assertEqual(self.ledger.events(self.call["id"], "team-a"), before)
         consent = self.store.consent(self.call["id"], "team-a", transcript=True, recording=True, attestation="owned fixture consent", now=100)
         self.assertEqual(consent["revision"], 1)
+
+    def test_delayed_recording_does_not_replace_newer_consented_audio(self):
+        consent = self.store.consent(self.call["id"], "team-a", transcript=False, recording=True, attestation="owned fixture consent", now=101)
+        pcm = b"\x10\x00" * 160
+        self.store.record(self.call["id"], "team-a", pcm, sample_rate=8000, consent_revision=consent["revision"], now=110)
+        before = self.store.recording(self.call["id"], "team-a")
+        with self.assertRaises(InvalidCall):
+            self.store.record(self.call["id"], "team-a", b"\x20\x00" * 160, sample_rate=8000, consent_revision=consent["revision"], now=109)
+        self.assertEqual(self.store.recording(self.call["id"], "team-a"), before)
+        self.store.record(self.call["id"], "team-a", b"\x30\x00" * 160, sample_rate=8000, consent_revision=consent["revision"], now=111)
+        self.assertNotEqual(self.store.recording(self.call["id"], "team-a"), before)

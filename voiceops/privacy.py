@@ -102,6 +102,9 @@ class PrivacyStore:
             if (not consent or not consent["recording"] or now < consent["observed_at"]
                     or type(consent_revision) is not int or consent_revision != consent["revision"]):
                 raise InvalidCall("Audio retention requires the buffer's current recording consent revision")
+            previous = db.execute("SELECT observed_at FROM recordings WHERE call_id=?", (call_id,)).fetchone()
+            if previous and now < previous[0]:
+                raise InvalidCall("Recording observation is stale")
             output = io.BytesIO()
             with wave.open(output, "wb") as writer:
                 writer.setnchannels(1)
